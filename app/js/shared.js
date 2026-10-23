@@ -3,7 +3,7 @@
   const { esc, icon, fmtQty, refreshIcons } = UI;
 
   // ---------- Số lượng (spec mục 6, 7) ----------
-  const QTY = { ok_qty: 'Sản lượng OK', ng_qty: 'Sản lượng NG', received_qty: 'Nhận BTP', transferred_qty: 'Chuyển BTP' };
+  const QTY = { ok_qty: 'Sản lượng đạt', ng_qty: 'Sản lượng không đạt', received_qty: 'Nhận bán thành phẩm', transferred_qty: 'Chuyển bán thành phẩm' };
   const toInt = (v) => { const s = String(v ?? '').trim(); return s === '' ? 0 : Number(s); };
 
   function qtyFieldsHtml(v = {}, large = false) {
@@ -13,11 +13,11 @@
         <div class="input-wrap"><input class="${cls}" inputmode="numeric" name="${key}" data-testid="${key}" placeholder="${ph}" value="${esc(v[key] ?? '')}"><span class="suffix">chiếc</span></div>
       </div>`;
     return `<div class="grid g2">
-      ${f('ok_qty', 'Sản lượng OK', true, 'VD: 100')}
-      ${f('ng_qty', 'Sản lượng NG', true, '0')}
-      ${f('received_qty', 'Nhận BTP', false, '0')}
-      ${f('transferred_qty', 'Chuyển BTP', false, '0')}
-      <div class="total-box span2"><div><div class="bold">Tổng sản lượng</div><div class="xs muted">OK + NG</div></div>
+      ${f('ok_qty', 'Sản lượng đạt', true, 'Ví dụ: 100')}
+      ${f('ng_qty', 'Sản lượng không đạt', true, '0')}
+      ${f('received_qty', 'Nhận bán thành phẩm', false, '0')}
+      ${f('transferred_qty', 'Chuyển bán thành phẩm', false, '0')}
+      <div class="total-box span2"><div><div class="bold">Tổng sản lượng</div><div class="xs muted">Đạt + Không đạt</div></div>
         <div><span class="num" data-total>${fmtQty(toInt(v.ok_qty) + toInt(v.ng_qty))}</span> <span class="muted sm">chiếc</span></div></div>
     </div>`;
   }
@@ -31,14 +31,14 @@
     root.querySelectorAll('[name=ok_qty],[name=ng_qty]').forEach((el) => el.addEventListener('input', upd));
   }
   function validateQty(q) {
-    if (String(q.ok_qty).trim() === '') return 'Vui lòng nhập sản lượng OK. Nhập 0 nếu không phát sinh.';
-    if (String(q.ng_qty).trim() === '') return 'Vui lòng nhập sản lượng NG. Nhập 0 nếu không phát sinh.';
+    if (String(q.ok_qty).trim() === '') return 'Vui lòng nhập sản lượng đạt. Nhập 0 nếu không phát sinh.';
+    if (String(q.ng_qty).trim() === '') return 'Vui lòng nhập sản lượng không đạt. Nhập 0 nếu không phát sinh.';
     for (const k of Object.keys(QTY)) {
       const s = String(q[k] ?? '').trim();
       if (s && (!/^\d+$/.test(s) || !Number.isSafeInteger(Number(s)))) return `${QTY[k]} phải là số nguyên không âm.`;
     }
     if (Object.keys(QTY).reduce((a, k) => a + toInt(q[k]), 0) === 0)
-      return 'Vui lòng nhập ít nhất một số lượng lớn hơn 0 tại các trường OK, NG, Nhận BTP hoặc Chuyển BTP.';
+      return 'Vui lòng nhập ít nhất một số lượng lớn hơn 0 tại các ô Đạt, Không đạt, Nhận bán thành phẩm hoặc Chuyển bán thành phẩm.';
     return null;
   }
   const qtyPayload = (q) => Object.fromEntries(Object.keys(QTY).map((k) => [k, toInt(q[k])]));
@@ -134,7 +134,7 @@
         <div class="field"><label>Hoặc nhập nội dung QR</label>
           <div class="row" style="flex-wrap:nowrap">
             <div class="input-wrap has-prefix" style="flex:1"><span class="prefix">${icon('scan-line')}</span>
-              <input class="input" id="qr-text" placeholder="VD: VB-6204|NL-01" data-testid="qr-input" autocomplete="off" autocapitalize="characters"></div>
+              <input class="input" id="qr-text" placeholder="Ví dụ: VB-6204|NL-01" data-testid="qr-input" autocomplete="off" autocapitalize="characters"></div>
             <button class="btn" id="qr-ok">${icon('check')} Xác nhận</button>
           </div>
           <div class="help">Dùng máy quét cầm tay (tự gõ vào ô) hoặc nhập tay rồi nhấn Enter.</div>
@@ -168,7 +168,7 @@
       const n = (err && (err.name || err)) + '';
       if (/NotAllowed|Permission|denied/i.test(n) || /denied|permission/i.test(err && err.message)) {
         saveCamOk(false);
-        return fail('Chưa được cấp quyền camera', `${deniedHelp()}<br>Trong lúc chờ, bạn có thể nhập nội dung mã QR ở ô bên dưới.`, true);
+        return fail('Chưa được cấp quyền camera', `${deniedHelp()}<br>Trong lúc chờ, có thể nhập nội dung mã QR ở ô bên dưới.`, true);
       }
       if (/NotFound|Overconstrained/i.test(n)) return fail('Không tìm thấy camera', 'Thiết bị không có camera phù hợp. Vui lòng nhập nội dung mã QR ở ô bên dưới.', true);
       if (/NotReadable|TrackStart|Abort/i.test(n)) return fail('Camera đang bận', 'Hãy tắt các ứng dụng khác đang dùng camera (Zalo, máy ảnh...) rồi bấm Thử lại.', true);

@@ -10,11 +10,16 @@
     const m = error && error.message;
     if (!m) return fallback;
     if (/JWT|session/i.test(m)) return 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
-    if (/row-level security|permission denied/i.test(m)) return 'Bạn không có quyền thực hiện thao tác này.';
+    if (/row-level security|permission denied/i.test(m)) return 'Tài khoản không có quyền thực hiện thao tác này.';
     if (/Failed to fetch|NetworkError|Load failed/i.test(m)) return 'Không thể kết nối máy chủ. Vui lòng kiểm tra mạng.';
     if (/violates foreign key constraint/i.test(m)) return 'Dữ liệu đang được sử dụng ở nơi khác, không thể xóa.';
     if (/duplicate key/i.test(m)) return 'Mã đã tồn tại. Vui lòng nhập mã khác.';
-    return m;
+    // Chuẩn hóa câu chữ thông báo từ cơ sở dữ liệu: không xưng hô, không viết tắt
+    return m
+      .replace(/^Bạn không có quyền/, 'Tài khoản không có quyền')
+      .replace(/^Bạn chỉ được/, 'Chỉ được')
+      .replace('các trường OK, NG, Nhận BTP hoặc Chuyển BTP', 'các ô Đạt, Không đạt, Nhận bán thành phẩm hoặc Chuyển bán thành phẩm')
+      .replace(/\bBTP\b/g, 'bán thành phẩm');
   }
   async function run(promise) {
     const { data, error } = await promise;
@@ -94,11 +99,11 @@
     createReport: (r) => run(sb.from('production_reports').insert(r)),
     async updateReport(id, q) {
       const rows = await run(sb.from('production_reports').update(q).eq('id', id).select('id'));
-      if (!rows.length) throw new Error('Bạn không có quyền thực hiện thao tác này.');
+      if (!rows.length) throw new Error('Tài khoản không có quyền thực hiện thao tác này.');
     },
     async cancelReport(id, reason) {
       const rows = await run(sb.from('production_reports').update({ status: 'cancelled', cancel_reason: reason }).eq('id', id).select('id'));
-      if (!rows.length) throw new Error('Bạn không có quyền thực hiện thao tác này.');
+      if (!rows.length) throw new Error('Tài khoản không có quyền thực hiện thao tác này.');
     },
     async listReports(f = {}) {
       const page = f.page || 1, size = f.pageSize || 20;

@@ -93,7 +93,7 @@
             ${icon('chevron-down')}
           </button>
           <div class="dropdown right">
-            <a class="dd-item" href="#/profile">${icon('user')} Hồ sơ & đổi mật khẩu</a>
+            <a class="dd-item" href="#/profile">${icon('user')} Hồ sơ và đổi mật khẩu</a>
             <button class="dd-item" data-act="to-mobile">${icon('smartphone')} Giao diện điện thoại</button>
             <div class="dd-sep"></div>
             <button class="dd-item" data-act="logout">${icon('log-out')} Đăng xuất</button>
@@ -121,7 +121,7 @@
           <div class="center">
             <img class="logo" src="assets/logo.png?v=2" alt="FOMECO">
             <h1 style="font-size:22px">FOMECO</h1>
-            <p class="muted">Báo cáo sản xuất BTP theo công đoạn</p>
+            <p class="muted">Báo cáo sản xuất bán thành phẩm theo công đoạn</p>
           </div>
           <div class="field"><label>Tài khoản <span class="req">*</span></label>
             <input class="input" name="username" placeholder="Nhập tên đăng nhập..." autofocus autocomplete="username"></div>
@@ -199,7 +199,7 @@
     if (!allowed) {
       if (path === '/') { location.hash = '#' + homePath(); return; }
       app.innerHTML = navbar(path) + `<main class="main"><div class="card center stack" style="max-width:520px;margin:60px auto">
-        ${icon('shield-x', 'ic-xl text-error')}<h2>Bạn không có quyền thực hiện thao tác này.</h2>
+        ${icon('shield-x', 'ic-xl text-error')}<h2>Tài khoản không có quyền thực hiện thao tác này.</h2>
         <p class="muted">Vui lòng liên hệ quản trị viên để được cấp quyền.</p>
         <div><a class="btn" href="#${homePath()}">${icon('house')} Về trang chủ</a></div></div></main>`;
       refreshIcons();
