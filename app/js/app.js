@@ -31,8 +31,8 @@
   // ---------- Chế độ hiển thị: tự nhận điện thoại / máy tính, cho phép chuyển tay ----------
   const View = {
     KEY: 'fomeco.view',
-    pref() { try { return localStorage.getItem(View.KEY); } catch (e) { return null; } },
-    set(v) { try { if (v) localStorage.setItem(View.KEY, v); else localStorage.removeItem(View.KEY); } catch (e) { /* bỏ qua */ } },
+    pref() { try { return (window.FOMECO_STORE || localStorage).getItem(View.KEY); } catch (e) { return null; } },
+    set(v) { try { const st = window.FOMECO_STORE || localStorage; if (v) st.setItem(View.KEY, v); else st.removeItem(View.KEY); } catch (e) { /* bỏ qua */ } },
     /** Điện thoại: màn hình hẹp, hoặc thiết bị di động cảm ứng */
     autoMobile() {
       const narrow = window.matchMedia('(max-width: 768px)').matches;

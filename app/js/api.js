@@ -2,8 +2,12 @@
    Sau này nối Bravo hoặc đổi backend chỉ cần sửa file này. */
 (function () {
   const cfg = window.APP_CONFIG;
+  // Chế độ test: link có ?phien=rieng → mỗi tab giữ phiên đăng nhập riêng (đóng tab là hết phiên).
+  // Link thường vẫn dùng phiên chung như cũ.
+  const rieng = new URLSearchParams(location.search).get('phien') === 'rieng';
+  window.FOMECO_STORE = rieng ? window.sessionStorage : window.localStorage;
   const sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY, {
-    auth: { persistSession: true, autoRefreshToken: true },
+    auth: Object.assign({ persistSession: true, autoRefreshToken: true }, rieng ? { storage: window.sessionStorage, storageKey: 'fomeco-auth-tab' } : {}),
   });
 
   function message(error, fallback = 'Đã có lỗi xảy ra. Vui lòng thử lại.') {
