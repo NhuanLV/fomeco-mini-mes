@@ -26,7 +26,7 @@
     let scanned = null;
 
     root.innerHTML = `<div class="stack">
-      ${UI.pageHead('Báo cáo tiến độ', 'clipboard-pen-line', `<a class="btn btn-outline" href="#/history">${icon('history')} Lịch sử báo cáo</a>`)}
+      ${UI.pageHead('Báo cáo tiến độ', 'clipboard-pen-line', (Auth.has('VIEW_REPORT') || Auth.has('MANAGE_REPORT')) ? `<a class="btn btn-outline" href="#/history">${icon('history')} Lịch sử báo cáo</a>` : `<a class="btn btn-outline" href="#/mine">${icon('clipboard-list')} Báo cáo của tôi</a>`)}
       ${u.unit_id ? '' : `<div class="alert alert-warning">${icon('triangle-alert')} Tài khoản chưa được phân công đơn vị. Vui lòng liên hệ quản trị viên.</div>`}
       <div class="side-layout">
         <div class="card">
@@ -37,7 +37,7 @@
           <div id="form"></div>
         </div>
         <div class="card"><div class="row between" style="margin-bottom:6px"><h2>Báo cáo gần đây</h2><span class="live-tag" data-live></span></div><div id="recent"></div>
-          <a class="sm bold" href="#/history">Xem tất cả báo cáo →</a></div>
+          <a class="sm bold" href="${(Auth.has('VIEW_REPORT') || Auth.has('MANAGE_REPORT')) ? '#/history' : '#/mine'}">Xem tất cả báo cáo →</a></div>
       </div></div>`;
 
     const form = root.querySelector('#form');
@@ -104,7 +104,7 @@
       try {
         const r = (await API.getStock({ unitId: u.unit_id, itemId })).find((x) => x.operation_id === opId);
         if (r && Number(r.closing_qty) < 0)
-          UI.toast('warning', 'Cảnh báo tồn bán thành phẩm âm', `Tồn bán thành phẩm tại mã hàng ${r.item_code}, công đoạn ${r.operation_code}, xí nghiệp ${r.unit_name} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.`, 9000);
+          UI.toast('warning', 'Cảnh báo tồn bán thành phẩm âm', `Tồn bán thành phẩm tại mã hàng ${r.item_code}, công đoạn ${r.operation_code} (${r.unit_name}) đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.`, 9000);
       } catch (e) { /* không chặn */ }
     }
 

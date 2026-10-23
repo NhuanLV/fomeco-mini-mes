@@ -24,7 +24,7 @@
         </div>
         <p class="xs muted">Người báo cáo, thời gian báo cáo gốc, mã hàng và công đoạn được giữ nguyên.</p>
         <div id="q">${Shared.qtyFieldsHtml({ ok_qty: r.ok_qty, ng_qty: r.ng_qty, received_qty: r.received_qty || '', transferred_qty: r.transferred_qty || '' })}</div></div>`,
-      footer: `<button class="btn btn-ghost" data-close>Hủy</button><button class="btn" data-save data-testid="save-edit">${icon('check')} Lưu thay đổi</button>`,
+      footer: `<button class="btn btn-ghost" data-close>Đóng</button><button class="btn" data-save data-testid="save-edit">${icon('check')} Lưu thay đổi</button>`,
     });
     const q = m.el.querySelector('#q');
     Shared.bindTotal(q);
@@ -133,7 +133,7 @@
       const all = el('all').checked, view = el('view').value;
       const negs = rows.filter((r) => Number(r.closing_qty) < 0);
       const count = rows.reduce((a, r) => a + Number(r.report_count), 0);
-      let html = negs.map((r) => `<div class="alert alert-warning" style="margin-bottom:8px">${icon('triangle-alert')} Tồn bán thành phẩm tại mã hàng ${esc(r.item_code)}, công đoạn ${esc(r.operation_code)}, xí nghiệp ${esc(r.unit_name)} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.</div>`).join('');
+      let html = negs.map((r) => `<div class="alert alert-warning" style="margin-bottom:8px">${icon('triangle-alert')} Tồn bán thành phẩm tại mã hàng ${esc(r.item_code)}, công đoạn ${esc(r.operation_code)} (${esc(r.unit_name)}) đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.</div>`).join('');
       html += `<div class="row between" style="margin:8px 0"><div><h3>${view === 'unit' ? 'Tồn bán thành phẩm theo xí nghiệp' : 'Tồn bán thành phẩm theo mã hàng'}</h3>
         <p class="xs muted">${all ? 'Từ đầu' : 'Từ ' + UI.fmtDate(el('from').value)} đến ${fmtDateTime(loadedAt)} · ${count} báo cáo đã ghi nhận</p></div>${badge('Đơn vị: chiếc')}</div>`;
       if (view === 'item' && !el('item').value) html += '<p class="muted center" style="padding:40px">Vui lòng chọn mã hàng để xem tồn bán thành phẩm.</p>';
@@ -149,7 +149,7 @@
           ${all ? '' : `<td class="num">${fmtQty(r.opening_qty)}</td>`}<td class="num">${fmtQty(r.received_qty)}</td><td class="num">${fmtQty(r.transferred_qty)}</td>
           <td class="num bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td>
           <td class="num">${r.gap === null ? '<span class="muted">—</span>' : r.gap === 0 ? badge('Khớp ' + r.next, 'success') : badge(`${r.gap > 0 ? '+' : ''}${fmtQty(r.gap)} so với ${r.next}`, 'warning')}</td></tr>`).join('')}</tbody></table></div>
-          <p class="xs muted" style="margin-top:8px">Lệch dương: công đoạn trước đã chuyển nhiều hơn số công đoạn sau ghi nhận nhận — kiểm tra hàng đang trên đường hoặc báo cáo thiếu.</p>`;
+          <p class="xs muted" style="margin-top:8px">Lệch dương: công đoạn trước đã chuyển nhiều hơn số công đoạn sau đã ghi nhận — kiểm tra hàng đang trên đường hoặc báo cáo thiếu.</p>`;
       }
       out.innerHTML = html; refreshIcons();
     };
@@ -265,7 +265,7 @@
       export: (btn) => UI.busy(btn, async () => {
         try {
           const { rows } = await API.listReports({ reporterId: me, search: f.search, unitId: f.unit, status: f.status, method: f.method, from: UI.startIso(f.from), to: UI.endIso(f.to), page: 1, pageSize: 5000 });
-          Shared.exportExcel(`lich-su-bao-cao-${UI.today()}.xlsx`, 'Bao cao',
+          Shared.exportExcel(`lich-su-bao-cao-${UI.today()}.xlsx`, 'Báo cáo',
             ['Thời gian', 'Người báo cáo', 'Xí nghiệp', 'Mã hàng', 'Tên sản phẩm', 'Mã công đoạn', 'Tên công đoạn', 'Đạt', 'Không đạt', 'Tổng', 'Nhận bán thành phẩm', 'Chuyển bán thành phẩm', 'Hình thức', 'Trạng thái', 'Lý do hủy'],
             rows.map((r) => [fmtDateTime(r.reported_at), r.reporter_name, r.unit_name, r.item_code, r.item_name, r.operation_code, r.operation_name, r.ok_qty, r.ng_qty, r.total_qty, r.received_qty, r.transferred_qty, METHOD[r.method], STATUS[r.status], r.cancel_reason || '']));
           UI.ok(`Đã xuất ${rows.length} báo cáo ra Excel.`);

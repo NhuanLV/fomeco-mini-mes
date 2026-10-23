@@ -45,7 +45,9 @@
       root.querySelectorAll('[data-act=preset]').forEach((b) => b.classList.toggle('btn-soft', b.dataset.p === s.preset));
     };
 
+    let loadSeq = 0; // chống kết quả cũ ghi đè khi đổi bộ lọc liên tiếp
     async function load() {
+      const my = ++loadSeq;
       const derr = root.querySelector('#derr');
       if (s.from > s.to) { derr.innerHTML = `<div class="alert alert-warning">${icon('triangle-alert')} Từ ngày không được lớn hơn Đến ngày.</div>`; refreshIcons(); return; }
       derr.innerHTML = '';
@@ -55,7 +57,8 @@
       try {
         const toIso = s.to === UI.today() ? new Date().toISOString() : UI.endIso(s.to);
         [daily, stock] = await Promise.all([API.getDaily(s.from, s.to, s.unit), API.getStock({ to: toIso, unitId: s.unit })]);
-      } catch (e) { UI.err(e.message); }
+      } catch (e) { if (my === loadSeq) UI.err(e.message); }
+      if (my !== loadSeq) return;
       root.querySelector('#upd').textContent = 'Cập nhật ' + fmtDateTime(new Date().toISOString());
       root.querySelector('#range').textContent = `${fmtDate(s.from)} – ${fmtDate(s.to)}`;
 

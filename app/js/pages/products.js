@@ -141,7 +141,7 @@
           </tbody></table></div>
           <div class="card" style="border-style:dashed;padding:14px"><div class="bold sm" style="margin-bottom:8px">Thêm công đoạn</div>
             <div class="grid" style="grid-template-columns:1fr 1.5fr auto">
-              <input class="input" name="ocode" list="op-list" placeholder="Mã công đoạn (vd. TIEN-01)">
+              <input class="input" name="ocode" list="op-list" placeholder="Mã công đoạn, ví dụ: TIEN-01">
               <datalist id="op-list">${operations.map((x) => `<option value="${esc(x.code)}">${esc(x.name)}</option>`).join('')}</datalist>
               <input class="input" name="oname" placeholder="Tên công đoạn">
               <button class="btn" data-a="add">${icon('plus')} Thêm</button></div></div></div>`;

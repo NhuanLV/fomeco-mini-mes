@@ -154,7 +154,7 @@
       try {
         const r = (await API.getStock({ unitId: u.unit_id, itemId })).find((x) => x.operation_id === opId);
         if (r && Number(r.closing_qty) < 0)
-          UI.toast('warning', 'Cảnh báo tồn bán thành phẩm âm', `Tồn bán thành phẩm tại mã hàng ${r.item_code}, công đoạn ${r.operation_code}, xí nghiệp ${r.unit_name} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.`, 9000);
+          UI.toast('warning', 'Cảnh báo tồn bán thành phẩm âm', `Tồn bán thành phẩm tại mã hàng ${r.item_code}, công đoạn ${r.operation_code} (${r.unit_name}) đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.`, 9000);
       } catch (e) { /* không chặn */ }
     }
 
