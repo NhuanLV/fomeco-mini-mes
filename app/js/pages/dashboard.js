@@ -34,8 +34,8 @@
         <div class="card"><div class="card-title"><h2>Tồn BTP theo xí nghiệp</h2>${badge('chiếc')}</div><div id="stockbars" class="stack" style="gap:12px"></div></div>
       </div>
       <div class="card"><h2 style="margin-bottom:10px">Tổng hợp theo xí nghiệp</h2>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Xí nghiệp</th><th class="right">OK</th><th class="right">NG</th><th class="right">Tỷ lệ NG</th>
-        <th class="right">Nhận BTP</th><th class="right">Chuyển BTP</th><th class="right">Tồn BTP</th><th class="right">Số báo cáo</th><th></th></tr></thead><tbody id="tbu"></tbody></table></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Xí nghiệp</th><th class="num">OK</th><th class="num">NG</th><th class="num">Tỷ lệ NG</th>
+        <th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th class="num">Tồn BTP</th><th class="num">Số báo cáo</th><th></th></tr></thead><tbody id="tbu"></tbody></table></div>
         <p class="xs muted" style="margin-top:8px">Tỷ lệ NG trên 5% được đánh dấu vàng. Số liệu cập nhật ngay khi có báo cáo mới, sửa hoặc hủy (Realtime).</p></div>
     </div>`;
 
@@ -103,9 +103,9 @@
           <div class="bar"><span class="${r.st < 0 ? 'neg' : ''}" style="width:${(Math.abs(r.st) / max) * 100}%"></span></div></div>`).join('')
         : '<p class="muted center" style="padding:24px">Không có dữ liệu tồn BTP phù hợp với điều kiện đã chọn.</p>';
       root.querySelector('#tbu').innerHTML = list.map((r) => `<tr><td class="bold">${esc(r.name)}</td>
-        <td class="right text-success">${fmtQty(r.ok)}</td><td class="right text-error">${fmtQty(r.ng)}</td>
-        <td class="right">${r.ok + r.ng ? badge(((r.ng / (r.ok + r.ng)) * 100).toFixed(1) + '%', r.ng / (r.ok + r.ng) > 0.05 ? 'warning' : 'neutral') : '<span class="muted">—</span>'}</td>
-        <td class="right">${fmtQty(r.rc)}</td><td class="right">${fmtQty(r.tr)}</td><td class="right bold ${r.st < 0 ? 'text-error' : ''}">${fmtQty(r.st)}</td><td class="right">${r.n}</td>
+        <td class="num text-success">${fmtQty(r.ok)}</td><td class="num text-error">${fmtQty(r.ng)}</td>
+        <td class="num">${r.ok + r.ng ? badge(((r.ng / (r.ok + r.ng)) * 100).toFixed(1) + '%', r.ng / (r.ok + r.ng) > 0.05 ? 'warning' : 'neutral') : '<span class="muted">—</span>'}</td>
+        <td class="num">${fmtQty(r.rc)}</td><td class="num">${fmtQty(r.tr)}</td><td class="num bold ${r.st < 0 ? 'text-error' : ''}">${fmtQty(r.st)}</td><td class="num">${r.n}</td>
         <td class="right"><a class="btn btn-outline btn-sm" href="#/history?unit=${r.id}&from=${s.from}&to=${s.to}">Chi tiết</a></td></tr>`).join('');
       refreshIcons();
     }

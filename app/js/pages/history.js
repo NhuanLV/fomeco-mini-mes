@@ -139,16 +139,16 @@
       if (view === 'item' && !el('item').value) html += '<p class="muted center" style="padding:40px">Vui lòng chọn mã hàng để xem tồn BTP.</p>';
       else if (!rows.length) html += '<p class="muted center" style="padding:40px">Không có dữ liệu tồn BTP phù hợp với điều kiện đã chọn.</p>';
       else if (view === 'unit') {
-        html += `<div class="table-wrap"><table class="table"><thead><tr><th>Tên xí nghiệp</th><th>Tên công đoạn</th>${all ? '' : '<th class="right">Tồn đầu kỳ</th>'}<th class="right">Nhận BTP</th><th class="right">Chuyển BTP</th><th class="right">SL tồn BTP</th></tr></thead><tbody>
+        html += `<div class="table-wrap"><table class="table"><thead><tr><th>Tên xí nghiệp</th><th>Tên công đoạn</th>${all ? '' : '<th class="num">Tồn đầu kỳ</th>'}<th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th class="num">SL tồn BTP</th></tr></thead><tbody>
           ${aggUnit().map((r) => `<tr><td>${icon('factory', 'muted')} ${esc(r.unit_name)}</td><td><div class="bold">${esc(r.operation_name)}</div><div class="sub mono">${esc(r.operation_code)}</div></td>
-          ${all ? '' : `<td class="right">${fmtQty(r.opening_qty)}</td>`}<td class="right">${fmtQty(r.received_qty)}</td><td class="right">${fmtQty(r.transferred_qty)}</td>
-          <td class="right bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td></tr>`).join('')}</tbody></table></div>`;
+          ${all ? '' : `<td class="num">${fmtQty(r.opening_qty)}</td>`}<td class="num">${fmtQty(r.received_qty)}</td><td class="num">${fmtQty(r.transferred_qty)}</td>
+          <td class="num bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td></tr>`).join('')}</tbody></table></div>`;
       } else {
-        html += `<div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Công đoạn</th>${all ? '' : '<th class="right">Tồn đầu kỳ</th>'}<th class="right">Nhận BTP</th><th class="right">Chuyển BTP</th><th class="right">SL tồn BTP</th><th class="right">Lệch chuyển → nhận công đoạn sau</th></tr></thead><tbody>
+        html += `<div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Công đoạn</th>${all ? '' : '<th class="num">Tồn đầu kỳ</th>'}<th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th class="num">SL tồn BTP</th><th class="num">Lệch chuyển → nhận công đoạn sau</th></tr></thead><tbody>
           ${aggItem().map((r) => `<tr><td class="muted">${r.seq}</td><td><div class="bold">${esc(r.operation_name)}</div><div class="sub mono">${esc(r.operation_code)}</div></td>
-          ${all ? '' : `<td class="right">${fmtQty(r.opening_qty)}</td>`}<td class="right">${fmtQty(r.received_qty)}</td><td class="right">${fmtQty(r.transferred_qty)}</td>
-          <td class="right bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td>
-          <td class="right">${r.gap === null ? '<span class="muted">—</span>' : r.gap === 0 ? badge('Khớp ' + r.next, 'success') : badge(`${r.gap > 0 ? '+' : ''}${fmtQty(r.gap)} so với ${r.next}`, 'warning')}</td></tr>`).join('')}</tbody></table></div>
+          ${all ? '' : `<td class="num">${fmtQty(r.opening_qty)}</td>`}<td class="num">${fmtQty(r.received_qty)}</td><td class="num">${fmtQty(r.transferred_qty)}</td>
+          <td class="num bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td>
+          <td class="num">${r.gap === null ? '<span class="muted">—</span>' : r.gap === 0 ? badge('Khớp ' + r.next, 'success') : badge(`${r.gap > 0 ? '+' : ''}${fmtQty(r.gap)} so với ${r.next}`, 'warning')}</td></tr>`).join('')}</tbody></table></div>
           <p class="xs muted" style="margin-top:8px">Lệch dương: công đoạn trước đã chuyển nhiều hơn số công đoạn sau ghi nhận nhận — kiểm tra hàng đang trên đường hoặc báo cáo thiếu.</p>`;
       }
       out.innerHTML = html; refreshIcons();
@@ -209,8 +209,8 @@
         </div>
         <div id="date-err"></div>
         <div class="table-wrap" style="margin-top:14px"><table class="table"><thead><tr>
-          <th>Thời gian báo cáo</th><th>Người báo cáo</th><th>Mã hàng / Công đoạn</th><th class="right">Sản lượng OK</th><th class="right">Sản lượng NG</th>
-          <th class="right">Tổng sản lượng</th><th class="right">Nhận BTP</th><th class="right">Chuyển BTP</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th>
+          <th>Thời gian báo cáo</th><th>Người báo cáo</th><th>Mã hàng / Công đoạn</th><th class="num">Sản lượng OK</th><th class="num">Sản lượng NG</th>
+          <th class="num">Tổng sản lượng</th><th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th>
         </tr></thead><tbody id="tb"></tbody></table></div>
         <div class="row between" style="margin-top:14px"><span class="sm muted" id="info"></span><div class="pager" id="pager"></div></div>
       </div></div>`;
@@ -228,8 +228,8 @@
         <td class="nowrap">${fmtDateTime(r.reported_at)}</td>
         <td><div class="bold">${esc(r.reporter_name)}</div><div class="sub">${esc(r.unit_name)}</div></td>
         <td><div class="bold">${esc(r.item_code)}</div><div class="sub">${esc(r.operation_code)} · ${esc(r.operation_name)}</div></td>
-        <td class="right text-success">${fmtQty(r.ok_qty)}</td><td class="right text-error">${fmtQty(r.ng_qty)}</td>
-        <td class="right bold">${fmtQty(r.total_qty)}</td><td class="right">${fmtQty(r.received_qty)}</td><td class="right">${fmtQty(r.transferred_qty)}</td>
+        <td class="num text-success">${fmtQty(r.ok_qty)}</td><td class="num text-error">${fmtQty(r.ng_qty)}</td>
+        <td class="num bold">${fmtQty(r.total_qty)}</td><td class="num">${fmtQty(r.received_qty)}</td><td class="num">${fmtQty(r.transferred_qty)}</td>
         <td>${badge(METHOD[r.method], r.method === 'qr' ? 'info' : 'neutral')}</td>
         <td><span title="${esc(r.cancel_reason || '')}">${badge(STATUS[r.status], r.status === 'active' ? 'success' : 'error')}</span></td>
         <td class="nowrap"><button class="btn btn-ghost btn-icon" data-act="detail" data-i="${i}" title="Chi tiết">${icon('eye')}</button>
