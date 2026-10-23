@@ -328,6 +328,9 @@ table.table { width: 100%; border-collapse: collapse; }
 .m-form .input, .m-form .select { height: 52px; font-size: 18px; border-radius: 12px; }
 .m-form .g2 { grid-template-columns: 1fr 1fr; }
 .m-form .total-box { grid-column: span 2; }
+.m-form .g2 > .field { display: flex; flex-direction: column; justify-content: flex-end; }
+.m-form .g2 > .field > label { line-height: 1.3; }
+.m-wrap:has(.m-save) { padding-bottom: calc(200px + env(safe-area-inset-bottom)); }
 .m-save { position: fixed; left: 0; right: 0; bottom: calc(92px + env(safe-area-inset-bottom)); z-index: 30; padding: 0 16px; }
 .m-save .btn { width: 100%; max-width: 488px; margin: 0 auto; display: flex; height: 56px; font-size: 18px; border-radius: 16px; box-shadow: 0 8px 20px rgba(5, 150, 105, 0.35); }
 .m-tabbar { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 35; width: min(92vw, 380px); height: 70px; background: rgba(255, 255, 255, 0.96); backdrop-filter: blur(8px); border-radius: 999px; box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16); display: grid; grid-template-columns: 1fr 96px 1fr; align-items: center; }
