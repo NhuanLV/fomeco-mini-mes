@@ -6,8 +6,16 @@
   // Link thường vẫn dùng phiên chung như cũ.
   const rieng = new URLSearchParams(location.search).get('phien') === 'rieng';
   window.FOMECO_STORE = rieng ? window.sessionStorage : window.localStorage;
+  // Mỗi tab một khóa phiên riêng: tránh việc đăng xuất ở tab này báo sang (BroadcastChannel) và đăng xuất các tab khác.
+  function tabKey() {
+    try {
+      let k = sessionStorage.getItem('fomeco.tabkey');
+      if (!k) { k = 'fomeco-auth-' + Math.random().toString(36).slice(2, 10); sessionStorage.setItem('fomeco.tabkey', k); }
+      return k;
+    } catch (e) { return 'fomeco-auth-tab'; }
+  }
   const sb = window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_KEY, {
-    auth: Object.assign({ persistSession: true, autoRefreshToken: true }, rieng ? { storage: window.sessionStorage, storageKey: 'fomeco-auth-tab' } : {}),
+    auth: Object.assign({ persistSession: true, autoRefreshToken: true }, rieng ? { storage: window.sessionStorage, storageKey: tabKey() } : {}),
   });
 
   function message(error, fallback = 'Đã có lỗi xảy ra. Vui lòng thử lại.') {
