@@ -1,5 +1,5 @@
 -- =====================================================================
--- FOMECO Mini-MES (demo) — Báo cáo sản xuất BTP — SCHEMA v2
+-- FOMECO (demo) — Báo cáo sản xuất BTP — SCHEMA v2
 -- Chạy trong Supabase → SQL Editor. Script tự xóa bản v1 (nếu có) rồi tạo lại.
 -- =====================================================================
 

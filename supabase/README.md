@@ -1,4 +1,4 @@
-# FOMECO Mini-MES demo — Database Supabase
+# FOMECO demo — Database Supabase
 
 Project Supabase: `fomeco-mes-demo` (NhuanLV's Org, region Sydney)
 URL API: https://zcevfcmpijgkaorzxxkv.supabase.co
