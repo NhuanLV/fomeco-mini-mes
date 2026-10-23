@@ -7,9 +7,11 @@
 
 -- Vai trò
 insert into public.roles (name, description, permissions, is_system) values
-  ('Quản trị hệ thống', 'Quản trị tài khoản, tổ chức và phân quyền',
-   '{MANAGE_ACCOUNT,MANAGE_ORG,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT}', true),
-  ('Nhân viên báo cáo', 'Nhập và quản lý báo cáo sản xuất', '{REPORT_PROGRESS,VIEW_REPORT}', false),
+  ('Quản trị hệ thống', 'Toàn quyền: phân quyền, đặt lại mật khẩu, tổ chức, mã hàng, báo cáo',
+   '{SYSTEM_ADMIN,MANAGE_ACCOUNT,MANAGE_ORG,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT,MANAGE_REPORT}', true),
+  ('Nhân viên quản lý', 'Tạo tài khoản công nhân, mã hàng & QR, xem tiến độ, sửa/hủy báo cáo',
+   '{MANAGE_ACCOUNT,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT,MANAGE_REPORT}', false),
+  ('Công nhân', 'Nhập báo cáo; xem, sửa, hủy báo cáo của mình trong ngày', '{REPORT_PROGRESS}', false),
   ('Người xem báo cáo', 'Theo dõi lịch sử báo cáo sản xuất', '{VIEW_REPORT}', false)
 on conflict (name) do nothing;
 
@@ -76,11 +78,11 @@ declare a record; v_id uuid;
 begin
   for a in select * from (values
     ('admin',     'Admin',          'FOMECO', 'Quản trị hệ thống'),
-    ('nv.ck1',    'Nguyễn Văn An',  'CK1',    'Nhân viên báo cáo'),
-    ('nv.vongbi', 'Trần Thị Bình',  'VB',     'Nhân viên báo cáo'),
+    ('nv.ck1',    'Nguyễn Văn An',  'CK1',    'Công nhân'),
+    ('nv.vongbi', 'Trần Thị Bình',  'VB',     'Công nhân'),
     ('xembaocao', 'Lê Minh Hải',    'FOMECO', 'Người xem báo cáo'),
-    ('nv.ck2',    'Phạm Văn Hùng',  'CK2',    'Nhân viên báo cáo'),
-    ('nv.rendap', 'Vũ Thị Lan',     'RD',     'Nhân viên báo cáo')
+    ('nv.ck2',    'Phạm Văn Hùng',  'CK2',    'Công nhân'),
+    ('nv.rendap', 'Vũ Thị Lan',     'RD',     'Công nhân')
   ) as t(username, full_name, unit_code, role_name)
   loop
     select id into v_id from public.profiles where username = a.username;
