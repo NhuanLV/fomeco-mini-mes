@@ -13,10 +13,10 @@
         <div class="input-wrap"><input class="${cls}" inputmode="numeric" name="${key}" data-testid="${key}" placeholder="${ph}" value="${esc(v[key] ?? '')}"><span class="suffix">chiếc</span></div>
       </div>`;
     return `<div class="grid g2">
-      ${f('ok_qty', 'Sản lượng OK', true, 'Nhập sản lượng đạt')}
+      ${f('ok_qty', 'Sản lượng OK', true, 'VD: 100')}
       ${f('ng_qty', 'Sản lượng NG', true, '0')}
-      ${f('received_qty', 'Nhận BTP', false, 'Để trống = 0')}
-      ${f('transferred_qty', 'Chuyển BTP', false, 'Để trống = 0')}
+      ${f('received_qty', 'Nhận BTP', false, '0')}
+      ${f('transferred_qty', 'Chuyển BTP', false, '0')}
       <div class="total-box span2"><div><div class="bold">Tổng sản lượng</div><div class="xs muted">OK + NG</div></div>
         <div><span class="num" data-total>${fmtQty(toInt(v.ok_qty) + toInt(v.ng_qty))}</span> <span class="muted sm">chiếc</span></div></div>
     </div>`;
@@ -110,50 +110,120 @@
   const toLabel = (o) => ({ qr_value: o.qr_value, item_code: o.item_code, item_name: o.item_name, operation_code: o.operation_code, operation_name: o.operation_name });
 
   /** Cửa sổ quét QR: camera + ô nhập cho máy quét cầm tay. onDetect(text) trả true để đóng. */
+  // ---------- Camera: xin quyền 1 lần, đã cho phép thì mở thẳng ----------
+  const CAM_KEY = 'fomeco.camera.ok';
+  const camOkSaved = () => { try { return localStorage.getItem(CAM_KEY) === '1'; } catch (e) { return false; } };
+  const saveCamOk = (v) => { try { v ? localStorage.setItem(CAM_KEY, '1') : localStorage.removeItem(CAM_KEY); } catch (e) { /* bỏ qua */ } };
+  /** 'granted' | 'denied' | 'prompt' | 'unknown' */
+  async function cameraPermission() {
+    try { return (await navigator.permissions.query({ name: 'camera' })).state; } catch (e) { return 'unknown'; }
+  }
+  const inAppBrowser = () => /Zalo|FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger/i.test(navigator.userAgent);
+  const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function deniedHelp() {
+    return isIOS()
+      ? 'Trên iPhone: mở <b>Cài đặt → Safari → Camera</b> chọn <b>Cho phép</b> (hoặc bấm <b>aA</b> trên thanh địa chỉ → Cài đặt trang web → Camera → Cho phép), rồi tải lại trang.'
+      : 'Trên Android: bấm biểu tượng <b>ổ khóa / ⓘ</b> cạnh địa chỉ web → <b>Quyền</b> → <b>Máy ảnh</b> → <b>Cho phép</b>, rồi tải lại trang.';
+  }
+
   function openScanner(onDetect) {
     const m = UI.modal({
       title: 'Quét mã QR',
       body: `<div class="stack">
-        <div class="scan-box"><div id="qr-reader"></div><div class="scan-msg" id="scan-msg">${icon('loader-circle', 'ic-xl')}<div>Đang mở camera...</div></div></div>
-        <div class="field"><label>Nội dung QR</label>
+        <div class="scan-box"><div id="qr-reader"></div><div class="scan-msg" id="scan-msg"></div></div>
+        <div class="field"><label>Hoặc nhập nội dung QR</label>
           <div class="row" style="flex-wrap:nowrap">
             <div class="input-wrap has-prefix" style="flex:1"><span class="prefix">${icon('scan-line')}</span>
-              <input class="input" id="qr-text" placeholder="Mã hàng|Mã công đoạn" data-testid="qr-input" autocomplete="off"></div>
+              <input class="input" id="qr-text" placeholder="VD: VB-6204|NL-01" data-testid="qr-input" autocomplete="off" autocapitalize="characters"></div>
             <button class="btn" id="qr-ok">${icon('check')} Xác nhận</button>
           </div>
-          <div class="help">Dùng máy quét cầm tay (tự gõ vào ô) hoặc nhập tay, ví dụ VB-6204|NL-01, rồi nhấn Enter.</div>
+          <div class="help">Dùng máy quét cầm tay (tự gõ vào ô) hoặc nhập tay rồi nhấn Enter.</div>
         </div></div>`,
       footer: `<button class="btn btn-outline" data-close>${icon('x')} Đóng</button>`,
       onClose: () => stop(),
     });
     let scanner = null, last = '', lastAt = 0, stopped = false;
     const input = m.el.querySelector('#qr-text');
-    setTimeout(() => input.focus(), 50);
-    const handle = async (text) => {
-      if (await onDetect(text)) m.close();
-    };
+    const msg = m.el.querySelector('#scan-msg');
+    const show = (html) => { msg.classList.remove('hidden'); msg.innerHTML = html; refreshIcons(); };
+    setTimeout(() => { if (matchMedia('(pointer: fine)').matches) input.focus(); }, 50); // điện thoại: không bật bàn phím che camera
+    const handle = async (text) => { if (await onDetect(text)) m.close(); };
     const submit = () => { const v = input.value; input.value = ''; handle(v); };
     input.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); submit(); } });
     m.el.querySelector('#qr-ok').addEventListener('click', submit);
     function stop() {
       stopped = true;
-      if (scanner) { scanner.stop().then(() => scanner.clear()).catch(() => {}); scanner = null; }
+      if (scanner) { const s = scanner; scanner = null; s.stop().then(() => s.clear()).catch(() => {}); }
     }
-    const msg = m.el.querySelector('#scan-msg');
-    try {
-      scanner = new window.Html5Qrcode('qr-reader', { verbose: false });
-      scanner.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 220, height: 220 } }, (text) => {
-        const now = Date.now();
-        if (text === last && now - lastAt < 2500) return;
-        last = text; lastAt = now;
-        if (navigator.vibrate) navigator.vibrate(80);
-        handle(text);
-      }).then(() => { if (stopped) stop(); else msg.classList.add('hidden'); })
-        .catch(() => { msg.innerHTML = `${icon('camera-off', 'ic-xl')}<div>Không thể mở camera. Vui lòng kiểm tra quyền truy cập hoặc nhập nội dung mã QR.</div>`; refreshIcons(); });
-    } catch (e) {
-      msg.innerHTML = `${icon('camera-off', 'ic-xl')}<div>Không thể mở camera. Vui lòng kiểm tra quyền truy cập hoặc nhập nội dung mã QR.</div>`;
-      refreshIcons();
+
+    const fail = (title, detail, retry) => show(`${icon('camera-off', 'ic-xl')}<div class="bold">${title}</div>
+      <div class="sm" style="opacity:.9;line-height:1.5">${detail}</div>
+      ${retry ? `<button class="btn btn-sm" data-retry style="margin-top:6px">${icon('rotate-ccw')} Thử lại</button>` : ''}`);
+    msg.addEventListener('click', (e) => {
+      if (e.target.closest('[data-allow]')) askPermission();
+      if (e.target.closest('[data-retry]')) begin();
+    });
+
+    function explainError(err) {
+      const n = (err && (err.name || err)) + '';
+      if (/NotAllowed|Permission|denied/i.test(n) || /denied|permission/i.test(err && err.message)) {
+        saveCamOk(false);
+        return fail('Chưa được cấp quyền camera', `${deniedHelp()}<br>Trong lúc chờ, bạn có thể nhập nội dung mã QR ở ô bên dưới.`, true);
+      }
+      if (/NotFound|Overconstrained/i.test(n)) return fail('Không tìm thấy camera', 'Thiết bị không có camera phù hợp. Vui lòng nhập nội dung mã QR ở ô bên dưới.', true);
+      if (/NotReadable|TrackStart|Abort/i.test(n)) return fail('Camera đang bận', 'Hãy tắt các ứng dụng khác đang dùng camera (Zalo, máy ảnh...) rồi bấm Thử lại.', true);
+      return fail('Không thể mở camera', `Vui lòng kiểm tra quyền truy cập camera hoặc nhập nội dung mã QR. <span class="xs" style="opacity:.7">(${UI.esc(n)})</span>`, true);
     }
+
+    // Bước 1: hỏi quyền — gọi getUserMedia ngay trong lần chạm của người dùng để trình duyệt hiện hộp thoại "Cho phép"
+    async function askPermission() {
+      show(`${icon('loader-circle', 'ic-xl')}<div>Hãy chọn <b>Cho phép</b> trên hộp thoại của trình duyệt...</div>`);
+      try {
+        const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false });
+        st.getTracks().forEach((t) => t.stop());
+        saveCamOk(true);
+        startScan();
+      } catch (err) { explainError(err); }
+    }
+
+    // Bước 2: bật camera sau và quét liên tục
+    function startScan() {
+      if (stopped) return;
+      if (!window.Html5Qrcode) return fail('Chưa tải được bộ quét QR', 'Kiểm tra kết nối mạng rồi tải lại trang, hoặc nhập nội dung mã QR ở ô bên dưới.', true);
+      show(`${icon('loader-circle', 'ic-xl')}<div>Đang mở camera...</div>`);
+      try {
+        scanner = new window.Html5Qrcode('qr-reader', { verbose: false });
+        scanner.start({ facingMode: 'environment' }, {
+          fps: 10, aspectRatio: 1.333,
+          qrbox: (w, h) => { const s = Math.max(160, Math.floor(Math.min(w, h) * 0.7)); return { width: s, height: s }; },
+        }, (text) => {
+          const now = Date.now();
+          if (text === last && now - lastAt < 2500) return;
+          last = text; lastAt = now;
+          if (navigator.vibrate) navigator.vibrate(80);
+          handle(text);
+        }).then(() => { saveCamOk(true); if (stopped) stop(); else msg.classList.add('hidden'); })
+          .catch((err) => { scanner = null; explainError(err); });
+      } catch (err) { explainError(err); }
+    }
+
+    async function begin() {
+      if (!window.isSecureContext || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        return fail('Trình duyệt không cho dùng camera ở đây', 'Hãy mở web bằng link <b>https://</b> trên Chrome (Android) hoặc Safari (iPhone).', false);
+      }
+      if (inAppBrowser()) {
+        return show(`${icon('external-link', 'ic-xl')}<div class="bold">Đang mở trong Zalo/Facebook</div>
+          <div class="sm" style="opacity:.9;line-height:1.5">Trình duyệt trong Zalo thường chặn camera. Bấm <b>⋯</b> (góc trên) → <b>Mở bằng trình duyệt</b> (Chrome/Safari).</div>
+          <button class="btn btn-sm" data-allow style="margin-top:6px">${icon('camera')} Vẫn thử mở camera</button>`);
+      }
+      const state = await cameraPermission();
+      if (state === 'denied') return explainError({ name: 'NotAllowedError' });
+      if (state === 'granted' || camOkSaved()) return startScan();   // đã cho phép trước đó: mở thẳng, không hỏi lại
+      show(`${icon('camera', 'ic-xl')}<div class="bold" style="font-size:16px">Cho phép dùng camera để quét mã QR</div>
+        <div class="sm" style="opacity:.9">Chỉ cần cho phép một lần, lần sau sẽ mở camera ngay.</div>
+        <button class="btn btn-lg" data-allow data-testid="allow-camera" style="margin-top:8px">${icon('camera')} Cho phép dùng camera</button>`);
+    }
+    begin();
     return m;
   }
 

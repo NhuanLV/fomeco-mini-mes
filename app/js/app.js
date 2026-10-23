@@ -6,6 +6,10 @@
   const Auth = {
     user: null,
     has(code) { return !!(Auth.user && (Auth.user.permissions || []).includes(code)); },
+    /** Công nhân: chỉ có quyền báo cáo tiến độ → dùng giao diện điện thoại, chỉ thấy báo cáo của mình */
+    isWorker() {
+      return Auth.has('REPORT_PROGRESS') && !['VIEW_REPORT', 'MANAGE_REPORT', 'MANAGE_ACCOUNT', 'MANAGE_PRODUCT', 'MANAGE_ORG', 'SYSTEM_ADMIN'].some((p) => Auth.has(p));
+    },
     async load() {
       const s = await API.session();
       if (!s) { Auth.user = null; return; }
@@ -30,6 +34,7 @@
 
   // ---------- Menu ----------
   function homePath() {
+    if (Auth.isWorker()) return '/w';
     if (Auth.has('VIEW_REPORT')) return '/';
     if (Auth.has('REPORT_PROGRESS')) return '/progress';
     if (Auth.has('MANAGE_PRODUCT')) return '/products';
@@ -43,12 +48,13 @@
     const admin = [
       Auth.has('MANAGE_ORG') && ['/org-units', 'building-2', 'Quản trị tổ chức'],
       Auth.has('MANAGE_ACCOUNT') && ['/accounts', 'id-card', 'Quản trị tài khoản'],
-      Auth.has('MANAGE_ACCOUNT') && ['/roles', 'shield', 'Quản trị vai trò'],
+      Auth.has('SYSTEM_ADMIN') && ['/roles', 'shield', 'Quản trị vai trò'],
       Auth.has('MANAGE_PRODUCT') && ['/products', 'qr-code', 'Quản trị mã hàng'],
     ].filter(Boolean);
     const report = [
       Auth.has('REPORT_PROGRESS') && ['/progress', 'clipboard-pen-line', 'Báo cáo tiến độ'],
-      (Auth.has('VIEW_REPORT') || Auth.has('REPORT_PROGRESS')) && ['/history', 'history', 'Lịch sử báo cáo'],
+      (Auth.has('VIEW_REPORT') || Auth.has('MANAGE_REPORT')) && ['/history', 'history', 'Lịch sử báo cáo'],
+      Auth.has('REPORT_PROGRESS') && ['/w', 'smartphone', 'Giao diện điện thoại (công nhân)'],
     ].filter(Boolean);
     const ddItems = (list) => list.map(([p, ic, l]) =>
       `<a class="dd-item ${p === path ? 'active' : ''}" href="#${p}">${icon(ic)} ${esc(l)}</a>`).join('');
@@ -79,6 +85,15 @@
           </div>
         </div>
       </header>`;
+  }
+
+  // ---------- Khung giao diện điện thoại (công nhân) ----------
+  function mobileShell(path) {
+    const tab = (p, ic, l) => `<a class="${path === p ? 'on' : ''}" href="#${p}">${icon(ic)}<span>${l}</span></a>`;
+    return `<div class="m-app"><div class="m-wrap" id="page"></div>
+      <nav class="m-tabbar">${tab('/w', 'house', 'Trang chủ')}
+        <a class="m-qr" href="#/w/new?mode=qr&scan=1" title="Quét mã QR" data-testid="tab-qr">${icon('scan-qr-code')}</a>
+        ${tab('/w/mine', 'clipboard-list', 'Của tôi')}</nav></div>`;
   }
 
   // ---------- Đăng nhập ----------
@@ -144,6 +159,8 @@
   let initialized = false;
   async function route() {
     const app = document.getElementById('app');
+    // Đổi trang thì đóng các hộp thoại đang mở (và tắt camera nếu đang quét)
+    document.querySelectorAll('.modal-backdrop').forEach((bd) => { const c = bd.querySelector('[data-close]'); if (c) c.click(); else bd.remove(); });
     const [path, qs] = (location.hash.slice(1) || '/').split('?');
     const query = Object.fromEntries(new URLSearchParams(qs || ''));
     if (!initialized) { await Auth.load(); initialized = true; }
@@ -160,6 +177,8 @@
     }
     const page = window.PAGES[path];
     if (!page) { location.hash = '#' + homePath(); return; }
+    // Công nhân chỉ dùng các màn hình điện thoại
+    if (Auth.isWorker() && !page.mobile) { location.hash = '#/w'; return; }
     const allowed = (!page.perm || Auth.has(page.perm)) && (!page.any || page.any.some((p) => Auth.has(p)));
     if (!allowed) {
       if (path === '/') { location.hash = '#' + homePath(); return; }
@@ -172,7 +191,8 @@
     }
     document.title = `${page.title} | FOMECO Mini-MES`;
     runCleanups();
-    app.innerHTML = navbar(path) + '<main class="main" id="page"></main>';
+    app.innerHTML = page.mobile ? mobileShell(path) : navbar(path) + '<main class="main" id="page"></main>';
+    window.scrollTo(0, 0);
     const root = document.getElementById('page');
     refreshIcons();
     try {

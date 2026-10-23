@@ -22,6 +22,7 @@
   const fmtDate = (ymd) => (ymd ? ymd.split('-').reverse().join('/') : '');
   const ymd = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   const today = () => ymd(new Date());
+  const isToday = (iso) => !!iso && ymd(new Date(iso)) === today();
   const daysAgo = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return ymd(d); };
   const startOfMonth = () => { const d = new Date(); d.setDate(1); return ymd(d); };
   const startIso = (s) => (s ? new Date(`${s}T00:00:00`).toISOString() : null);
@@ -111,7 +112,7 @@
   const debounce = (fn, ms = 300) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
   window.UI = {
-    $, $$, esc, icon, refreshIcons, fmtQty, fmtDateTime, fmtDate, today, daysAgo, startOfMonth, startIso, endIso,
+    $, $$, esc, icon, refreshIcons, fmtQty, fmtDateTime, fmtDate, today, isToday, daysAgo, startOfMonth, startIso, endIso,
     initials, normalize, METHOD, STATUS, SOURCE, badge, toast, ok, err, warn, modal, confirmDialog, busy, on,
     pageHead, options, debounce,
   };

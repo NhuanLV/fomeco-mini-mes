@@ -105,6 +105,7 @@
       let q = sb.from('v_report_history').select('*', { count: 'exact' })
         .order('reported_at', { ascending: false }).range((page - 1) * size, page * size - 1);
       if (f.unitId) q = q.eq('unit_id', f.unitId);
+      if (f.reporterId) q = q.eq('reporter_id', f.reporterId);
       if (f.status) q = q.eq('status', f.status);
       if (f.method) q = q.eq('method', f.method);
       if (f.from) q = q.gte('reported_at', f.from);
