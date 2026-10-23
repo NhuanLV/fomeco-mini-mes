@@ -60,7 +60,7 @@
     const inner = qrSvg(d.qr_value, 180).replace(/<svg /, '<svg x="30" y="38" ');
     return `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="330" viewBox="0 0 240 330" font-family="Arial, sans-serif">
   <rect width="240" height="330" fill="#fff" stroke="#d4d4d8" rx="10"/>
-  <text x="120" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#0f5fa8">FOMECO <tspan font-size="11" fill="#059669">Mini-MES</tspan></text>
+  <text x="120" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="#0f5fa8">FOMECO</text>
   ${inner}
   <text x="120" y="244" text-anchor="middle" font-size="18" font-weight="700">${esc(d.item_code)}</text>
   <text x="120" y="264" text-anchor="middle" font-size="12" fill="#52525b">${esc(d.item_name)}</text>
@@ -87,7 +87,7 @@
     if (!list.length) return UI.warn('Chưa có mã QR để hiển thị.');
     const cards = list.map((d, i) => `
       <div class="qr-card">
-        <div class="qr-brand">FOMECO <span>Mini-MES</span></div>
+        <div class="qr-brand">FOMECO</div>
         <div class="qr">${qrSvg(d.qr_value)}</div>
         <div class="bold" style="font-size:17px">${esc(d.item_code)}</div>
         <div class="xs muted">${esc(d.item_name)}</div>
