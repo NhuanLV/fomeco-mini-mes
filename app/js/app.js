@@ -66,7 +66,7 @@
     return `
       <header class="navbar">
         <button class="btn btn-ghost btn-icon menu-toggle" data-act="toggle-menu">${icon('menu')}</button>
-        <a class="brand" href="#${homePath()}"><img src="assets/logo.png" alt="FOMECO"><span>Mini-MES</span></a>
+        <a class="brand" href="#${homePath()}"><img src="assets/logo.png?v=2" alt="FOMECO"><span>Mini-MES</span></a>
         <nav class="nav" id="main-nav">
           ${Auth.has('VIEW_REPORT') ? `<div class="nav-item"><a class="nav-btn ${path === '/' ? 'active' : ''}" href="#/">${icon('house')} Dashboard</a></div>` : ''}
           ${group('Quản trị', 'settings-2', admin)}
@@ -103,7 +103,7 @@
       <div class="login-wrap">
         <form class="card login-card stack" id="login-form" autocomplete="on">
           <div class="center">
-            <img class="logo" src="assets/logo.png" alt="FOMECO">
+            <img class="logo" src="assets/logo.png?v=2" alt="FOMECO">
             <h1 style="font-size:22px">FOMECO Mini-MES</h1>
             <p class="muted">Báo cáo sản xuất BTP theo công đoạn</p>
           </div>
