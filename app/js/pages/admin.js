@@ -22,7 +22,13 @@
 
   // ---------- Tài khoản ----------
   async function accounts(root) {
-    const [units, roles] = await Promise.all([API.listUnits(), API.listRoles()]);
+    const [units, allRoles] = await Promise.all([API.listUnits(), API.listRoles()]);
+    // Admin (SYSTEM_ADMIN) toàn quyền; nhân viên quản lý chỉ gán/sửa vai trò không vượt quyền của mình
+    const sys = Auth.has('SYSTEM_ADMIN');
+    const roleById = Object.fromEntries(allRoles.map((r) => [r.id, r]));
+    const within = (roleId) => sys || !roleId || (roleById[roleId] && !roleById[roleId].permissions.includes('SYSTEM_ADMIN')
+      && roleById[roleId].permissions.every((p) => Auth.has(p)));
+    const roles = allRoles.filter((r) => within(r.id));
     let list = [], search = '', unit = '';
     root.innerHTML = `<div class="stack">
       ${UI.pageHead('Quản trị tài khoản', 'id-card', `<button class="btn" data-act="new" data-testid="new-account">${icon('plus')} Thêm mới</button>`)}
@@ -32,7 +38,8 @@
           <select class="select" name="unit" style="width:300px"><option value="">Tất cả đơn vị</option>${options(units.map((u) => ({ value: u.id, label: u.name })))}</select>
         </div>
         <div class="table-wrap"><table class="table"><thead><tr><th>Tên người dùng</th><th>Tài khoản</th><th>Đơn vị phân công</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="tb"></tbody></table></div>
-        <p class="sm muted" style="margin-top:10px" id="info"></p></div></div>`;
+        <p class="sm muted" style="margin-top:10px" id="info"></p>
+        ${sys ? '' : `<p class="xs muted">${icon('info')} Bạn được tạo và sửa tài khoản có vai trò không vượt quá quyền của mình. Đặt lại mật khẩu và xóa tài khoản do quản trị hệ thống thực hiện.</p>`}</div></div>`;
     const draw = () => {
       const rows = list.filter((a) => (!unit || a.unit_id === unit) && (!search || normalize(a.full_name + ' ' + a.username).includes(normalize(search))));
       root.querySelector('#tb').innerHTML = rows.map((a) => `<tr class="${a.active ? '' : 'dim'}">
@@ -41,9 +48,9 @@
         <td>${a.unit_name ? badge(a.unit_name) : '<i class="muted">Chưa phân công</i>'}</td>
         <td>${a.role_name ? badge(a.role_name, 'info') : '<i class="muted">Chưa có vai trò</i>'}</td>
         <td>${badge(a.active ? 'Đang hoạt động' : 'Đã khóa', a.active ? 'success' : 'error')}</td>
-        <td class="nowrap"><button class="btn btn-ghost btn-icon" data-act="pw" data-id="${a.id}" title="Đặt lại mật khẩu">${icon('key-round')}</button>
-          <button class="btn btn-ghost btn-icon" data-act="edit" data-id="${a.id}" title="Sửa">${icon('pencil')}</button>
-          <button class="btn btn-ghost btn-icon danger" data-act="del" data-id="${a.id}" title="Xóa" ${a.id === Auth.user.id ? 'disabled' : ''}>${icon('trash-2')}</button></td></tr>`).join('')
+        <td class="nowrap">${sys ? `<button class="btn btn-ghost btn-icon" data-act="pw" data-id="${a.id}" title="Đặt lại mật khẩu">${icon('key-round')}</button>` : ''}
+          ${within(a.role_id) ? `<button class="btn btn-ghost btn-icon" data-act="edit" data-id="${a.id}" title="Sửa">${icon('pencil')}</button>` : `<span class="xs muted" title="Chỉ quản trị hệ thống được sửa tài khoản này">${icon('lock')}</span>`}
+          ${sys ? `<button class="btn btn-ghost btn-icon danger" data-act="del" data-id="${a.id}" title="Xóa" ${a.id === Auth.user.id ? 'disabled' : ''}>${icon('trash-2')}</button>` : ''}</td></tr>`).join('')
         || '<tr><td colspan="6" class="empty">Không tìm thấy tài khoản nào.</td></tr>';
       root.querySelector('#info').textContent = `Hiển thị ${rows.length} trong tổng số ${list.length} tài khoản`;
       refreshIcons();
@@ -243,7 +250,7 @@
   }
 
   PAGES['/accounts'] = { title: 'Quản trị tài khoản', perm: 'MANAGE_ACCOUNT', render: accounts };
-  PAGES['/roles'] = { title: 'Quản trị vai trò', perm: 'MANAGE_ACCOUNT', render: roles };
+  PAGES['/roles'] = { title: 'Quản trị vai trò', perm: 'SYSTEM_ADMIN', render: roles };
   PAGES['/org-units'] = { title: 'Quản trị tổ chức', perm: 'MANAGE_ORG', render: orgUnits };
   PAGES['/profile'] = { title: 'Hồ sơ', render: profile };
 })();

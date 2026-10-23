@@ -2,9 +2,13 @@
 (function () {
   const { esc, icon, fmtQty, fmtDateTime, METHOD, STATUS, badge, refreshIcons, options } = UI;
 
+  // Quản lý (MANAGE_REPORT): sửa/hủy báo cáo trong phạm vi đơn vị (Công ty = mọi xí nghiệp).
+  // Công nhân: chỉ báo cáo của mình, trong ngày đã nhập.
   function canEdit(r) {
     const u = Auth.user;
-    return r.status === 'active' && Auth.has('REPORT_PROGRESS') && (r.unit_id === u.unit_id || u.unit_level === 1);
+    if (r.status !== 'active') return false;
+    if (Auth.has('MANAGE_REPORT') && (r.unit_id === u.unit_id || u.unit_level === 1)) return true;
+    return Auth.has('REPORT_PROGRESS') && r.reporter_id === u.id && UI.isToday(r.reported_at);
   }
 
   // ---------- Sửa ----------
@@ -270,5 +274,6 @@
     App.live(root, load, { notify: true });
   }
 
-  PAGES['/history'] = { title: 'Lịch sử báo cáo', any: ['VIEW_REPORT', 'REPORT_PROGRESS'], render };
+  PAGES['/history'] = { title: 'Lịch sử báo cáo', any: ['VIEW_REPORT', 'MANAGE_REPORT'], render };
+  window.ReportDialogs = { canEdit, openEdit, openCancel, openDetail };
 })();
