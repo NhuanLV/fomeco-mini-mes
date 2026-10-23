@@ -43,30 +43,44 @@
   // ---------------- Trang chủ ----------------
   async function home(root) {
     const u = Auth.user;
+    const rp = Auth.has('REPORT_PROGRESS');
     let rows = [];
+    // Ô chức năng theo quyền (quản lý / admin có thêm các mục quản trị, mở trang web co giãn theo màn hình)
+    const tiles = [
+      rp && ['#/w/new?mode=manual', 'pencil-line', '', 'Báo cáo thủ công', 'tile-manual'],
+      rp && ['#/w/new?mode=qr&scan=1', 'scan-qr-code', 'blue', 'Quét mã QR', 'tile-qr'],
+      rp && ['#/w/mine', 'clipboard-list', 'amber', 'Báo cáo của tôi'],
+      Auth.has('VIEW_REPORT') && ['#/', 'chart-column', 'blue', 'Dashboard'],
+      (Auth.has('VIEW_REPORT') || Auth.has('MANAGE_REPORT')) && ['#/history', 'history', 'amber', 'Lịch sử báo cáo'],
+      Auth.has('MANAGE_PRODUCT') && ['#/products', 'qr-code', '', 'Mã hàng & QR'],
+      Auth.has('MANAGE_ACCOUNT') && ['#/accounts', 'id-card', 'blue', 'Quản lý tài khoản'],
+      Auth.has('MANAGE_ORG') && ['#/org-units', 'building-2', 'amber', 'Tổ chức'],
+      Auth.has('SYSTEM_ADMIN') && ['#/roles', 'shield', 'red', 'Vai trò'],
+      ['#/w/me', 'user-round', 'red', 'Tài khoản của tôi'],
+    ].filter(Boolean);
     root.innerHTML = `
       <div class="m-top">
         <div class="brand-sm"><img src="assets/logo.png?v=2" alt="FOMECO"><div>FOMECO<small>Báo cáo sản xuất</small></div></div>
         <div class="row" style="gap:10px"><span class="live-tag" data-live></span>
+          <button class="m-round" data-act="to-web" title="Chuyển sang giao diện web">${icon('monitor')}</button>
           <a class="m-round" href="#/w/me" title="Tài khoản">${icon('settings')}</a></div>
       </div>
       <div class="m-hello"><div class="m-ava">${esc(initials(u.full_name))}</div>
         <div><div class="name">${esc(u.full_name)}</div>
-          <a class="m-chip" href="#/w/new?mode=qr&scan=1">${icon('scan-qr-code')} Báo cáo ngay ${icon('arrow-right')}</a></div></div>
-      <a class="m-card m-today" href="#/w/mine" style="display:flex">
+          ${rp ? `<a class="m-chip" href="#/w/new?mode=qr&scan=1">${icon('scan-qr-code')} Báo cáo ngay ${icon('arrow-right')}</a>` : `<div class="muted sm">${esc(u.role_name || '')}</div>`}</div></div>
+      ${rp ? `<a class="m-card m-today" href="#/w/mine" style="display:flex">
         <div><div class="lbl">Sản lượng hôm nay của tôi · ${esc(u.unit_name || 'Chưa phân công')}</div>
           <div class="val" id="t-ok">—</div><div class="sub" id="t-sub"></div></div>
         <div class="m-arrow">${icon('arrow-right')}</div></a>
-      ${u.unit_id ? '' : `<div class="alert alert-warning" style="margin-top:12px">${icon('triangle-alert')} Tài khoản chưa được phân công đơn vị. Vui lòng liên hệ quản lý.</div>`}
+      ${u.unit_id ? '' : `<div class="alert alert-warning" style="margin-top:12px">${icon('triangle-alert')} Tài khoản chưa được phân công đơn vị. Vui lòng liên hệ quản lý.</div>`}` : ''}
       <div class="m-sec"><h2>Chức năng</h2></div>
       <div class="m-card m-tiles" style="padding:10px">
-        <a class="m-tile" href="#/w/new?mode=manual" data-testid="tile-manual"><span class="ic">${icon('pencil-line')}</span>Báo cáo thủ công</a>
-        <a class="m-tile" href="#/w/new?mode=qr&scan=1" data-testid="tile-qr"><span class="ic blue">${icon('scan-qr-code')}</span>Quét mã QR</a>
-        <a class="m-tile" href="#/w/mine"><span class="ic amber">${icon('clipboard-list')}</span>Báo cáo của tôi</a>
-        <a class="m-tile" href="#/w/me"><span class="ic red">${icon('user-round')}</span>Tài khoản</a>
+        ${tiles.map(([h, ic, c, l, tid]) => `<a class="m-tile" href="${h}" ${tid ? `data-testid="${tid}"` : ''}><span class="ic ${c}">${icon(ic)}</span>${l}</a>`).join('')}
       </div>
-      <div class="m-sec"><h2>Gần đây</h2><a href="#/w/mine">Xem tất cả</a></div>
-      <div class="m-list" id="recent"><div class="skeleton" style="height:120px;border-radius:16px"></div></div>`;
+      ${rp ? `<div class="m-sec"><h2>Gần đây</h2><a href="#/w/mine">Xem tất cả</a></div>
+      <div class="m-list" id="recent"><div class="skeleton" style="height:120px;border-radius:16px"></div></div>` : ''}
+      <button class="btn btn-outline btn-lg" data-act="to-web" style="width:100%;margin-top:16px;height:50px">${icon('monitor')} Chuyển sang giao diện web</button>`;
+    if (!rp) return;
     const load = async () => {
       try { rows = await myReports(UI.daysAgo(6), UI.today()); } catch (e) { UI.err(e.message); rows = []; }
       const today = rows.filter((r) => r.status === 'active' && UI.isToday(r.reported_at));
@@ -226,6 +240,7 @@
         <dt>Vai trò</dt><dd>${esc(u.role_name || '')}</dd></dl></div>
       <div class="stack" style="margin-top:16px">
         <button class="btn btn-outline btn-lg" data-pw style="height:52px">${icon('key-round')} Đổi mật khẩu</button>
+        <button class="btn btn-outline btn-lg" data-act="to-web" style="height:52px">${icon('monitor')} Chuyển sang giao diện web</button>
         <button class="btn btn-danger btn-lg" data-act="logout" style="height:52px">${icon('log-out')} Đăng xuất</button>
       </div>
       <p class="m-note" style="margin-top:14px">${icon('info')} Quên mật khẩu? Liên hệ quản trị hệ thống để được đặt lại.</p>`;
@@ -247,7 +262,7 @@
   }
 
   const P = { perm: 'REPORT_PROGRESS', mobile: true };
-  PAGES['/w'] = { ...P, title: 'Trang chủ', render: home };
+  PAGES['/w'] = { title: 'Trang chủ', mobile: true, render: home };
   PAGES['/w/new'] = { ...P, title: 'Nhập báo cáo', render: entry };
   PAGES['/w/mine'] = { ...P, title: 'Báo cáo của tôi', render: mine };
   PAGES['/w/me'] = { title: 'Tài khoản', mobile: true, render: me };

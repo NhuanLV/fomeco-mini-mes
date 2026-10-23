@@ -182,18 +182,20 @@
   }
 
   // ---------- Trang ----------
-  async function render(root, query) {
+  async function render(root, query, opts = {}) {
+    const mine = !!opts.mine;                       // "Báo cáo của tôi" (công nhân trên máy tính)
+    const me = mine ? Auth.user.id : undefined;
     const units = await API.listUnits();
     const f = { search: '', unit: query.unit || '', status: '', method: '', from: query.from || '', to: query.to || '', page: 1, size: 20 };
     let data = { rows: [], total: 0 };
 
     root.innerHTML = `<div class="stack">
-      ${UI.pageHead('Lịch sử báo cáo', 'history', `
-        <button class="btn btn-outline" data-act="stock" data-testid="open-stock">${icon('chart-column')} Xem Tồn BTP</button>
+      ${UI.pageHead(mine ? 'Báo cáo của tôi' : 'Lịch sử báo cáo', mine ? 'clipboard-list' : 'history', `
+        ${mine ? '' : `<button class="btn btn-outline" data-act="stock" data-testid="open-stock">${icon('chart-column')} Xem Tồn BTP</button>`}
         <button class="btn btn-outline" data-act="export">${icon('file-spreadsheet')} Xuất Excel</button>
         ${Auth.has('REPORT_PROGRESS') ? `<a class="btn" href="#/progress">${icon('plus')} Báo cáo tiến độ</a>` : ''}`)}
       <div class="card">
-        <div class="card-title"><div><h2>Lịch sử báo cáo sản xuất</h2><p class="sm muted">Theo dõi sản lượng theo mã hàng và công đoạn</p></div><div class="row"><span class="live-tag" data-live></span>${badge('Đơn vị: chiếc')}</div></div>
+        <div class="card-title"><div><h2>${mine ? 'Báo cáo sản xuất của tôi' : 'Lịch sử báo cáo sản xuất'}</h2><p class="sm muted">${mine ? 'Chỉ hiển thị báo cáo do bạn nhập. Sửa hoặc hủy được trong ngày đã nhập.' : 'Theo dõi sản lượng theo mã hàng và công đoạn'}</p></div><div class="row"><span class="live-tag" data-live></span>${badge('Đơn vị: chiếc')}</div></div>
         <div class="grid g4">
           <div class="input-wrap has-prefix"><span class="prefix">${icon('search')}</span><input class="input" name="search" placeholder="Tìm mã hàng, công đoạn, người báo cáo..."></div>
           <select class="select" name="unit"><option value="">Tất cả đơn vị</option>${options(units.map((u) => ({ value: u.id, label: u.name })), f.unit)}</select>
@@ -220,7 +222,7 @@
       de.innerHTML = '';
       if (!tb.children.length) tb.innerHTML = '<tr><td colspan="11"><div class="skeleton"></div></td></tr>';
       try {
-        data = await API.listReports({ search: f.search, unitId: f.unit, status: f.status, method: f.method, from: UI.startIso(f.from), to: UI.endIso(f.to), page: f.page, pageSize: f.size });
+        data = await API.listReports({ reporterId: me, search: f.search, unitId: f.unit, status: f.status, method: f.method, from: UI.startIso(f.from), to: UI.endIso(f.to), page: f.page, pageSize: f.size });
       } catch (e) { UI.err(e.message); data = { rows: [], total: 0 }; }
       tb.innerHTML = data.rows.length ? data.rows.map((r, i) => `<tr>
         <td class="nowrap">${fmtDateTime(r.reported_at)}</td>
@@ -262,7 +264,7 @@
       stock: () => openStock(),
       export: (btn) => UI.busy(btn, async () => {
         try {
-          const { rows } = await API.listReports({ search: f.search, unitId: f.unit, status: f.status, method: f.method, from: UI.startIso(f.from), to: UI.endIso(f.to), page: 1, pageSize: 5000 });
+          const { rows } = await API.listReports({ reporterId: me, search: f.search, unitId: f.unit, status: f.status, method: f.method, from: UI.startIso(f.from), to: UI.endIso(f.to), page: 1, pageSize: 5000 });
           Shared.exportExcel(`lich-su-bao-cao-${UI.today()}.xlsx`, 'Bao cao',
             ['Thời gian', 'Người báo cáo', 'Xí nghiệp', 'Mã hàng', 'Tên sản phẩm', 'Mã công đoạn', 'Tên công đoạn', 'OK', 'NG', 'Tổng', 'Nhận BTP', 'Chuyển BTP', 'Hình thức', 'Trạng thái', 'Lý do hủy'],
             rows.map((r) => [fmtDateTime(r.reported_at), r.reporter_name, r.unit_name, r.item_code, r.item_name, r.operation_code, r.operation_name, r.ok_qty, r.ng_qty, r.total_qty, r.received_qty, r.transferred_qty, METHOD[r.method], STATUS[r.status], r.cancel_reason || '']));
@@ -275,5 +277,6 @@
   }
 
   PAGES['/history'] = { title: 'Lịch sử báo cáo', any: ['VIEW_REPORT', 'MANAGE_REPORT'], render };
+  PAGES['/mine'] = { title: 'Báo cáo của tôi', perm: 'REPORT_PROGRESS', render: (root, q) => render(root, q, { mine: true }) };
   window.ReportDialogs = { canEdit, openEdit, openCancel, openDetail };
 })();
