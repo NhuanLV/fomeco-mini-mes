@@ -7,11 +7,11 @@
 
 -- Vai trò
 insert into public.roles (name, description, permissions, is_system) values
-  ('Quản trị hệ thống', 'Toàn quyền: phân quyền, đặt lại mật khẩu, tổ chức, mã hàng, báo cáo',
+  ('Quản trị hệ thống', 'Toàn quyền: phân quyền, đặt lại mật khẩu, quản lý tổ chức, mã hàng và báo cáo',
    '{SYSTEM_ADMIN,MANAGE_ACCOUNT,MANAGE_ORG,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT,MANAGE_REPORT}', true),
-  ('Nhân viên quản lý', 'Tạo tài khoản công nhân, mã hàng & QR, xem tiến độ, sửa/hủy báo cáo',
+  ('Nhân viên quản lý', 'Tạo tài khoản công nhân, quản lý mã hàng và mã QR, xem tiến độ, sửa hoặc hủy báo cáo',
    '{MANAGE_ACCOUNT,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT,MANAGE_REPORT}', false),
-  ('Công nhân', 'Nhập báo cáo; xem, sửa, hủy báo cáo của mình trong ngày', '{REPORT_PROGRESS}', false),
+  ('Công nhân', 'Nhập báo cáo sản xuất; xem, sửa hoặc hủy báo cáo của chính mình trong ngày', '{REPORT_PROGRESS}', false),
   ('Người xem báo cáo', 'Theo dõi lịch sử báo cáo sản xuất', '{VIEW_REPORT}', false)
 on conflict (name) do nothing;
 
@@ -77,7 +77,7 @@ do $$
 declare a record; v_id uuid;
 begin
   for a in select * from (values
-    ('admin',     'Admin',          'FOMECO', 'Quản trị hệ thống'),
+    ('admin',     'Quản trị viên',  'FOMECO', 'Quản trị hệ thống'),
     ('nv.ck1',    'Nguyễn Văn An',  'CK1',    'Công nhân'),
     ('nv.vongbi', 'Trần Thị Bình',  'VB',     'Công nhân'),
     ('xembaocao', 'Lê Minh Hải',    'FOMECO', 'Người xem báo cáo'),

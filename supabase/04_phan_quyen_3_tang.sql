@@ -239,19 +239,19 @@ grant execute on function public.role_within_mine(uuid) to authenticated;
 alter table public.roles disable trigger trg_roles_protect;
 update public.roles
    set permissions = '{SYSTEM_ADMIN,MANAGE_ACCOUNT,MANAGE_ORG,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT,MANAGE_REPORT}',
-       description = 'Toàn quyền: phân quyền, đặt lại mật khẩu, tổ chức, mã hàng, báo cáo'
+       description = 'Toàn quyền: phân quyền, đặt lại mật khẩu, quản lý tổ chức, mã hàng và báo cáo'
  where name = 'Quản trị hệ thống';
 update public.roles
    set name = 'Công nhân', permissions = '{REPORT_PROGRESS}',
-       description = 'Nhập báo cáo; xem, sửa, hủy báo cáo của mình trong ngày'
+       description = 'Nhập báo cáo sản xuất; xem, sửa hoặc hủy báo cáo của chính mình trong ngày'
  where name = 'Nhân viên báo cáo'
    and not exists (select 1 from public.roles where name = 'Công nhân');
 alter table public.roles enable trigger trg_roles_protect;
 
 insert into public.roles (name, description, permissions, is_system) values
-  ('Nhân viên quản lý', 'Tạo tài khoản công nhân, mã hàng & QR, xem tiến độ, sửa/hủy báo cáo',
+  ('Nhân viên quản lý', 'Tạo tài khoản công nhân, quản lý mã hàng và mã QR, xem tiến độ, sửa hoặc hủy báo cáo',
    '{MANAGE_ACCOUNT,MANAGE_PRODUCT,REPORT_PROGRESS,VIEW_REPORT,MANAGE_REPORT}', false),
-  ('Công nhân', 'Nhập báo cáo; xem, sửa, hủy báo cáo của mình trong ngày', '{REPORT_PROGRESS}', false)
+  ('Công nhân', 'Nhập báo cáo sản xuất; xem, sửa hoặc hủy báo cáo của chính mình trong ngày', '{REPORT_PROGRESS}', false)
 on conflict (name) do nothing;
 
 -- 8. Tài khoản demo cho nhân viên quản lý (mật khẩu ngẫu nhiên, admin đặt lại)
