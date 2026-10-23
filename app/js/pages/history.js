@@ -1,4 +1,4 @@
-/* Lịch sử báo cáo: lọc, phân trang, sửa, hủy, chi tiết + nhật ký, tồn BTP, xuất Excel (spec 4.3–4.5) */
+/* Lịch sử báo cáo: lọc, phân trang, sửa, hủy, chi tiết + nhật ký, tồn bán thành phẩm, xuất Excel (spec 4.3–4.5) */
 (function () {
   const { esc, icon, fmtQty, fmtDateTime, METHOD, STATUS, badge, refreshIcons, options } = UI;
 
@@ -44,7 +44,7 @@
     const m = UI.modal({
       title: 'Hủy báo cáo',
       body: `<div class="stack"><div class="center">${icon('triangle-alert', 'ic-xl')}</div>
-        <p style="line-height:1.7">Bạn có chắc chắn muốn hủy báo cáo mã hàng <b>${esc(r.item_code)}</b>, công đoạn <b>${esc(r.operation_code)}</b>, lúc <b>${fmtDateTime(r.reported_at)}</b>? Báo cáo sau khi hủy sẽ không được tính vào sản lượng và tồn BTP.</p>
+        <p style="line-height:1.7">Hủy báo cáo mã hàng <b>${esc(r.item_code)}</b>, công đoạn <b>${esc(r.operation_code)}</b>, lúc <b>${fmtDateTime(r.reported_at)}</b>? Báo cáo sau khi hủy sẽ không được tính vào sản lượng và tồn bán thành phẩm.</p>
         <div class="field"><label>Lý do hủy <span class="req">*</span></label><textarea class="textarea" rows="3" id="reason" placeholder="Nhập lý do hủy..." data-testid="cancel-reason"></textarea></div></div>`,
       footer: `<button class="btn btn-outline" data-close>Không hủy</button><button class="btn btn-danger" data-ok data-testid="confirm-cancel">${icon('ban')} Xác nhận hủy</button>`,
     });
@@ -58,7 +58,7 @@
 
   // ---------- Chi tiết + nhật ký ----------
   async function openDetail(r) {
-    const set = (q) => (q ? `OK ${fmtQty(q.ok)} · NG ${fmtQty(q.ng)} · Nhận ${fmtQty(q.received)} · Chuyển ${fmtQty(q.transferred)}` : '');
+    const set = (q) => (q ? `Đạt ${fmtQty(q.ok)} · Không đạt ${fmtQty(q.ng)} · Nhận ${fmtQty(q.received)} · Chuyển ${fmtQty(q.transferred)}` : '');
     const m = UI.modal({
       title: 'Chi tiết báo cáo', size: 'lg',
       body: `<div class="stack sm">
@@ -71,11 +71,11 @@
           <div><div class="xs muted">Hình thức / Trạng thái</div>${METHOD[r.method]} · ${badge(STATUS[r.status], r.status === 'active' ? 'success' : 'error')}</div>
         </div>
         <div class="grid g6 center info-grid" style="grid-template-columns:repeat(5,1fr)">
-          <div><div class="xs muted">OK</div><b class="text-success">${fmtQty(r.ok_qty)}</b></div>
-          <div><div class="xs muted">NG</div><b class="text-error">${fmtQty(r.ng_qty)}</b></div>
+          <div><div class="xs muted">Đạt</div><b class="text-success">${fmtQty(r.ok_qty)}</b></div>
+          <div><div class="xs muted">Không đạt</div><b class="text-error">${fmtQty(r.ng_qty)}</b></div>
           <div><div class="xs muted">Tổng</div><b>${fmtQty(r.total_qty)}</b></div>
-          <div><div class="xs muted">Nhận BTP</div><b>${fmtQty(r.received_qty)}</b></div>
-          <div><div class="xs muted">Chuyển BTP</div><b>${fmtQty(r.transferred_qty)}</b></div>
+          <div><div class="xs muted">Nhận bán thành phẩm</div><b>${fmtQty(r.received_qty)}</b></div>
+          <div><div class="xs muted">Chuyển bán thành phẩm</div><b>${fmtQty(r.transferred_qty)}</b></div>
         </div>
         ${r.status === 'cancelled' ? `<div class="alert alert-error">${icon('ban')}<div><b>Đã hủy bởi ${esc(r.cancelled_by_name || '')} lúc ${fmtDateTime(r.cancelled_at)}</b><div>Lý do: ${esc(r.cancel_reason || '')}</div></div></div>` : ''}
         <div><h3 style="margin-bottom:10px">Nhật ký thay đổi</h3><div id="logs"><div class="skeleton"></div></div></div></div>`,
@@ -90,12 +90,12 @@
     } catch (e) { m.el.querySelector('#logs').textContent = e.message; }
   }
 
-  // ---------- Tồn BTP ----------
+  // ---------- Tồn bán thành phẩm ----------
   async function openStock() {
     const items = await API.listItems();
     let rows = [], loadedAt = '';
     const m = UI.modal({
-      title: 'Xem Tồn BTP', size: 'full',
+      title: 'Xem tồn bán thành phẩm', size: 'full',
       body: `<div class="stack">
         <div class="grid" style="grid-template-columns:repeat(4,1fr) auto;align-items:end">
           <div class="field"><label>Từ ngày</label><input class="input" type="date" name="from" disabled></div>
@@ -133,18 +133,18 @@
       const all = el('all').checked, view = el('view').value;
       const negs = rows.filter((r) => Number(r.closing_qty) < 0);
       const count = rows.reduce((a, r) => a + Number(r.report_count), 0);
-      let html = negs.map((r) => `<div class="alert alert-warning" style="margin-bottom:8px">${icon('triangle-alert')} Tồn BTP tại mã hàng ${esc(r.item_code)}, công đoạn ${esc(r.operation_code)}, xí nghiệp ${esc(r.unit_name)} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển BTP.</div>`).join('');
-      html += `<div class="row between" style="margin:8px 0"><div><h3>${view === 'unit' ? 'Tồn BTP theo xí nghiệp' : 'Tồn BTP theo mã hàng'}</h3>
+      let html = negs.map((r) => `<div class="alert alert-warning" style="margin-bottom:8px">${icon('triangle-alert')} Tồn bán thành phẩm tại mã hàng ${esc(r.item_code)}, công đoạn ${esc(r.operation_code)}, xí nghiệp ${esc(r.unit_name)} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.</div>`).join('');
+      html += `<div class="row between" style="margin:8px 0"><div><h3>${view === 'unit' ? 'Tồn bán thành phẩm theo xí nghiệp' : 'Tồn bán thành phẩm theo mã hàng'}</h3>
         <p class="xs muted">${all ? 'Từ đầu' : 'Từ ' + UI.fmtDate(el('from').value)} đến ${fmtDateTime(loadedAt)} · ${count} báo cáo đã ghi nhận</p></div>${badge('Đơn vị: chiếc')}</div>`;
-      if (view === 'item' && !el('item').value) html += '<p class="muted center" style="padding:40px">Vui lòng chọn mã hàng để xem tồn BTP.</p>';
-      else if (!rows.length) html += '<p class="muted center" style="padding:40px">Không có dữ liệu tồn BTP phù hợp với điều kiện đã chọn.</p>';
+      if (view === 'item' && !el('item').value) html += '<p class="muted center" style="padding:40px">Vui lòng chọn mã hàng để xem tồn bán thành phẩm.</p>';
+      else if (!rows.length) html += '<p class="muted center" style="padding:40px">Không có dữ liệu tồn bán thành phẩm phù hợp với điều kiện đã chọn.</p>';
       else if (view === 'unit') {
-        html += `<div class="table-wrap"><table class="table"><thead><tr><th>Tên xí nghiệp</th><th>Tên công đoạn</th>${all ? '' : '<th class="num">Tồn đầu kỳ</th>'}<th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th class="num">SL tồn BTP</th></tr></thead><tbody>
+        html += `<div class="table-wrap"><table class="table"><thead><tr><th>Tên xí nghiệp</th><th>Tên công đoạn</th>${all ? '' : '<th class="num">Tồn đầu kỳ</th>'}<th class="num">Nhận bán thành phẩm</th><th class="num">Chuyển bán thành phẩm</th><th class="num">Tồn cuối kỳ</th></tr></thead><tbody>
           ${aggUnit().map((r) => `<tr><td>${icon('factory', 'muted')} ${esc(r.unit_name)}</td><td><div class="bold">${esc(r.operation_name)}</div><div class="sub mono">${esc(r.operation_code)}</div></td>
           ${all ? '' : `<td class="num">${fmtQty(r.opening_qty)}</td>`}<td class="num">${fmtQty(r.received_qty)}</td><td class="num">${fmtQty(r.transferred_qty)}</td>
           <td class="num bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td></tr>`).join('')}</tbody></table></div>`;
       } else {
-        html += `<div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Công đoạn</th>${all ? '' : '<th class="num">Tồn đầu kỳ</th>'}<th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th class="num">SL tồn BTP</th><th class="num">Lệch chuyển → nhận công đoạn sau</th></tr></thead><tbody>
+        html += `<div class="table-wrap"><table class="table"><thead><tr><th>#</th><th>Công đoạn</th>${all ? '' : '<th class="num">Tồn đầu kỳ</th>'}<th class="num">Nhận bán thành phẩm</th><th class="num">Chuyển bán thành phẩm</th><th class="num">Tồn cuối kỳ</th><th class="num">Lệch chuyển → nhận công đoạn sau</th></tr></thead><tbody>
           ${aggItem().map((r) => `<tr><td class="muted">${r.seq}</td><td><div class="bold">${esc(r.operation_name)}</div><div class="sub mono">${esc(r.operation_code)}</div></td>
           ${all ? '' : `<td class="num">${fmtQty(r.opening_qty)}</td>`}<td class="num">${fmtQty(r.received_qty)}</td><td class="num">${fmtQty(r.transferred_qty)}</td>
           <td class="num bold ${Number(r.closing_qty) < 0 ? 'text-error' : ''}">${fmtQty(r.closing_qty)}</td>
@@ -172,10 +172,10 @@
     m.el.querySelector('[data-x]').addEventListener('click', () => {
       if (!rows.length) return UI.warn('Không có dữ liệu để xuất.');
       if (el('view').value === 'unit')
-        Shared.exportExcel(`ton-btp-theo-xi-nghiep-${UI.today()}.xlsx`, 'Ton BTP', ['Xí nghiệp', 'Mã công đoạn', 'Tên công đoạn', 'Tồn đầu kỳ', 'Nhận BTP', 'Chuyển BTP', 'Tồn cuối kỳ'],
+        Shared.exportExcel(`ton-ban-thanh-pham-theo-xi-nghiep-${UI.today()}.xlsx`, 'Tồn bán thành phẩm', ['Xí nghiệp', 'Mã công đoạn', 'Tên công đoạn', 'Tồn đầu kỳ', 'Nhận bán thành phẩm', 'Chuyển bán thành phẩm', 'Tồn cuối kỳ'],
           aggUnit().map((r) => [r.unit_name, r.operation_code, r.operation_name, +r.opening_qty, +r.received_qty, +r.transferred_qty, +r.closing_qty]));
       else
-        Shared.exportExcel(`ton-btp-${rows[0].item_code}-${UI.today()}.xlsx`, 'Ton BTP', ['Thứ tự', 'Mã công đoạn', 'Tên công đoạn', 'Tồn đầu kỳ', 'Nhận BTP', 'Chuyển BTP', 'Tồn cuối kỳ', 'Lệch chuyển→nhận CĐ sau'],
+        Shared.exportExcel(`ton-ban-thanh-pham-${rows[0].item_code}-${UI.today()}.xlsx`, 'Tồn bán thành phẩm', ['Thứ tự', 'Mã công đoạn', 'Tên công đoạn', 'Tồn đầu kỳ', 'Nhận bán thành phẩm', 'Chuyển bán thành phẩm', 'Tồn cuối kỳ', 'Lệch chuyển → nhận công đoạn sau'],
           aggItem().map((r) => [r.seq, r.operation_code, r.operation_name, +r.opening_qty, +r.received_qty, +r.transferred_qty, +r.closing_qty, r.gap]));
     });
     load();
@@ -191,11 +191,11 @@
 
     root.innerHTML = `<div class="stack">
       ${UI.pageHead(mine ? 'Báo cáo của tôi' : 'Lịch sử báo cáo', mine ? 'clipboard-list' : 'history', `
-        ${mine ? '' : `<button class="btn btn-outline" data-act="stock" data-testid="open-stock">${icon('chart-column')} Xem Tồn BTP</button>`}
+        ${mine ? '' : `<button class="btn btn-outline" data-act="stock" data-testid="open-stock">${icon('chart-column')} Xem tồn bán thành phẩm</button>`}
         <button class="btn btn-outline" data-act="export">${icon('file-spreadsheet')} Xuất Excel</button>
         ${Auth.has('REPORT_PROGRESS') ? `<a class="btn" href="#/progress">${icon('plus')} Báo cáo tiến độ</a>` : ''}`)}
       <div class="card">
-        <div class="card-title"><div><h2>${mine ? 'Báo cáo sản xuất của tôi' : 'Lịch sử báo cáo sản xuất'}</h2><p class="sm muted">${mine ? 'Chỉ hiển thị báo cáo do bạn nhập. Sửa hoặc hủy được trong ngày đã nhập.' : 'Theo dõi sản lượng theo mã hàng và công đoạn'}</p></div><div class="row"><span class="live-tag" data-live></span>${badge('Đơn vị: chiếc')}</div></div>
+        <div class="card-title"><div><h2>${mine ? 'Báo cáo sản xuất của tôi' : 'Lịch sử báo cáo sản xuất'}</h2><p class="sm muted">${mine ? 'Chỉ hiển thị báo cáo do chính tài khoản này nhập. Sửa hoặc hủy được trong ngày đã nhập.' : 'Theo dõi sản lượng theo mã hàng và công đoạn'}</p></div><div class="row"><span class="live-tag" data-live></span>${badge('Đơn vị: chiếc')}</div></div>
         <div class="grid g4">
           <div class="input-wrap has-prefix"><span class="prefix">${icon('search')}</span><input class="input" name="search" placeholder="Tìm mã hàng, công đoạn, người báo cáo..."></div>
           <select class="select" name="unit"><option value="">Tất cả đơn vị</option>${options(units.map((u) => ({ value: u.id, label: u.name })), f.unit)}</select>
@@ -205,12 +205,12 @@
         <div class="grid" style="grid-template-columns:1fr 1fr auto;align-items:end;margin-top:12px">
           <div class="field"><label>Từ ngày</label><input class="input" type="date" name="from" value="${esc(f.from)}"></div>
           <div class="field"><label>Đến ngày</label><input class="input" type="date" name="to" value="${esc(f.to)}"></div>
-          <button class="btn btn-outline btn-icon" data-act="reset" title="Bỏ lọc & tải lại">${icon('rotate-ccw')}</button>
+          <button class="btn btn-outline btn-icon" data-act="reset" title="Bỏ lọc và tải lại">${icon('rotate-ccw')}</button>
         </div>
         <div id="date-err"></div>
         <div class="table-wrap" style="margin-top:14px"><table class="table"><thead><tr>
-          <th>Thời gian báo cáo</th><th>Người báo cáo</th><th>Mã hàng / Công đoạn</th><th class="num">Sản lượng OK</th><th class="num">Sản lượng NG</th>
-          <th class="num">Tổng sản lượng</th><th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th>
+          <th>Thời gian báo cáo</th><th>Người báo cáo</th><th>Mã hàng / Công đoạn</th><th class="num">Sản lượng đạt</th><th class="num">Sản lượng không đạt</th>
+          <th class="num">Tổng sản lượng</th><th class="num">Nhận bán thành phẩm</th><th class="num">Chuyển bán thành phẩm</th><th>Hình thức</th><th>Trạng thái</th><th>Thao tác</th>
         </tr></thead><tbody id="tb"></tbody></table></div>
         <div class="row between" style="margin-top:14px"><span class="sm muted" id="info"></span><div class="pager" id="pager"></div></div>
       </div></div>`;
@@ -266,7 +266,7 @@
         try {
           const { rows } = await API.listReports({ reporterId: me, search: f.search, unitId: f.unit, status: f.status, method: f.method, from: UI.startIso(f.from), to: UI.endIso(f.to), page: 1, pageSize: 5000 });
           Shared.exportExcel(`lich-su-bao-cao-${UI.today()}.xlsx`, 'Bao cao',
-            ['Thời gian', 'Người báo cáo', 'Xí nghiệp', 'Mã hàng', 'Tên sản phẩm', 'Mã công đoạn', 'Tên công đoạn', 'OK', 'NG', 'Tổng', 'Nhận BTP', 'Chuyển BTP', 'Hình thức', 'Trạng thái', 'Lý do hủy'],
+            ['Thời gian', 'Người báo cáo', 'Xí nghiệp', 'Mã hàng', 'Tên sản phẩm', 'Mã công đoạn', 'Tên công đoạn', 'Đạt', 'Không đạt', 'Tổng', 'Nhận bán thành phẩm', 'Chuyển bán thành phẩm', 'Hình thức', 'Trạng thái', 'Lý do hủy'],
             rows.map((r) => [fmtDateTime(r.reported_at), r.reporter_name, r.unit_name, r.item_code, r.item_name, r.operation_code, r.operation_name, r.ok_qty, r.ng_qty, r.total_qty, r.received_qty, r.transferred_qty, METHOD[r.method], STATUS[r.status], r.cancel_reason || '']));
           UI.ok(`Đã xuất ${rows.length} báo cáo ra Excel.`);
         } catch (e) { UI.err(e.message); }

@@ -17,8 +17,8 @@
     return `<div class="m-rep ${r.status}" data-act="detail" data-id="${r.id}">
       <div class="top"><div><div class="code">${esc(r.item_code)}</div><div class="op">${esc(r.operation_code)} · ${esc(r.operation_name)}</div></div>
         ${r.status === 'cancelled' ? badge('Đã hủy', 'error') : badge(METHOD[r.method], r.method === 'qr' ? 'info' : 'neutral')}</div>
-      <div class="nums"><div><b class="text-success">${fmtQty(r.ok_qty)}</b><span>OK</span></div>
-        <div><b class="text-error">${fmtQty(r.ng_qty)}</b><span>NG</span></div><div><b>${fmtQty(r.total_qty)}</b><span>Tổng</span></div></div>
+      <div class="nums"><div><b class="text-success">${fmtQty(r.ok_qty)}</b><span>Đạt</span></div>
+        <div><b class="text-error">${fmtQty(r.ng_qty)}</b><span>Không đạt</span></div><div><b>${fmtQty(r.total_qty)}</b><span>Tổng</span></div></div>
       <div class="meta"><span>${icon('clock', 'ic-sm')} ${UI.isToday(r.reported_at) ? 'Hôm nay ' + hhmm(r.reported_at) : fmtDateTime(r.reported_at)}</span>
         ${r.received_qty || r.transferred_qty ? `<span>Nhận ${fmtQty(r.received_qty)} · Chuyển ${fmtQty(r.transferred_qty)}</span>` : ''}</div>
       ${can ? `<div class="acts"><button class="btn btn-outline" data-act="edit" data-id="${r.id}">${icon('pencil')} Sửa</button>
@@ -52,7 +52,7 @@
       rp && ['#/w/mine', 'clipboard-list', 'amber', 'Báo cáo của tôi'],
       Auth.has('VIEW_REPORT') && ['#/', 'chart-column', 'blue', 'Dashboard'],
       (Auth.has('VIEW_REPORT') || Auth.has('MANAGE_REPORT')) && ['#/history', 'history', 'amber', 'Lịch sử báo cáo'],
-      Auth.has('MANAGE_PRODUCT') && ['#/products', 'qr-code', '', 'Mã hàng & QR'],
+      Auth.has('MANAGE_PRODUCT') && ['#/products', 'qr-code', '', 'Mã hàng và mã QR'],
       Auth.has('MANAGE_ACCOUNT') && ['#/accounts', 'id-card', 'blue', 'Quản lý tài khoản'],
       Auth.has('MANAGE_ORG') && ['#/org-units', 'building-2', 'amber', 'Tổ chức'],
       Auth.has('SYSTEM_ADMIN') && ['#/roles', 'shield', 'red', 'Vai trò'],
@@ -85,8 +85,8 @@
       try { rows = await myReports(UI.daysAgo(6), UI.today()); } catch (e) { UI.err(e.message); rows = []; }
       const today = rows.filter((r) => r.status === 'active' && UI.isToday(r.reported_at));
       const sum = (k) => today.reduce((a, r) => a + Number(r[k]), 0);
-      root.querySelector('#t-ok').innerHTML = `${fmtQty(sum('ok_qty'))} <small>chiếc OK</small>`;
-      root.querySelector('#t-sub').innerHTML = `<span class="text-error">NG ${fmtQty(sum('ng_qty'))}</span><span>Tổng ${fmtQty(sum('total_qty'))}</span><span class="muted">${today.length} báo cáo</span>`;
+      root.querySelector('#t-ok').innerHTML = `${fmtQty(sum('ok_qty'))} <small>chiếc đạt</small>`;
+      root.querySelector('#t-sub').innerHTML = `<span class="text-error">Không đạt ${fmtQty(sum('ng_qty'))}</span><span>Tổng ${fmtQty(sum('total_qty'))}</span><span class="muted">${today.length} báo cáo</span>`;
       const recent = rows.slice(0, 3);
       root.querySelector('#recent').innerHTML = recent.length ? recent.map((r) => repCard(r, true)).join('')
         : `<div class="m-card m-empty">${icon('inbox', 'ic-xl')}<div>Chưa có báo cáo nào trong 7 ngày qua.<br>Bấm nút QR ở giữa để báo cáo.</div></div>`;
@@ -154,7 +154,7 @@
       try {
         const r = (await API.getStock({ unitId: u.unit_id, itemId })).find((x) => x.operation_id === opId);
         if (r && Number(r.closing_qty) < 0)
-          UI.toast('warning', 'Cảnh báo tồn BTP âm', `Tồn BTP tại mã hàng ${r.item_code}, công đoạn ${r.operation_code}, xí nghiệp ${r.unit_name} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển BTP.`, 9000);
+          UI.toast('warning', 'Cảnh báo tồn bán thành phẩm âm', `Tồn bán thành phẩm tại mã hàng ${r.item_code}, công đoạn ${r.operation_code}, xí nghiệp ${r.unit_name} đang âm ${fmtQty(Math.abs(r.closing_qty))} chiếc. Vui lòng kiểm tra dữ liệu nhận và chuyển bán thành phẩm.`, 9000);
       } catch (e) { /* không chặn */ }
     }
 
@@ -202,7 +202,7 @@
       <div class="m-head"><a class="m-round" href="#/w" title="Quay lại">${icon('arrow-left')}</a><h1 style="flex:1">Báo cáo của tôi</h1><span class="live-tag" data-live></span></div>
       <div class="m-seg">${Object.entries(ranges).map(([k, [l]]) => `<button data-r="${k}" class="${k === range ? 'on' : ''}">${l}</button>`).join('')}</div>
       <div class="m-card m-today" style="margin-bottom:10px"><div><div class="lbl" id="s-lbl"></div><div class="val" id="s-ok">—</div><div class="sub" id="s-sub"></div></div></div>
-      <p class="m-note">${icon('info')} Bạn chỉ sửa hoặc hủy được báo cáo của mình trong ngày đã nhập. Báo cáo ngày cũ cần điều chỉnh, vui lòng liên hệ quản lý.</p>
+      <p class="m-note">${icon('info')} Chỉ sửa hoặc hủy được báo cáo của mình trong ngày đã nhập. Báo cáo ngày cũ cần điều chỉnh, vui lòng liên hệ quản lý.</p>
       <div class="m-list" id="list"><div class="skeleton" style="height:120px;border-radius:16px"></div></div>`;
     const load = async () => {
       const [l, a, b] = ranges[range];
@@ -210,8 +210,8 @@
       const act = rows.filter((r) => r.status === 'active');
       const sum = (k) => act.reduce((x, r) => x + Number(r[k]), 0);
       root.querySelector('#s-lbl').textContent = `Tổng sản lượng · ${l}`;
-      root.querySelector('#s-ok').innerHTML = `${fmtQty(sum('ok_qty'))} <small>chiếc OK</small>`;
-      root.querySelector('#s-sub').innerHTML = `<span class="text-error">NG ${fmtQty(sum('ng_qty'))}</span><span>Tổng ${fmtQty(sum('total_qty'))}</span><span class="muted">${act.length} báo cáo${rows.length > act.length ? ` · ${rows.length - act.length} đã hủy` : ''}</span>`;
+      root.querySelector('#s-ok').innerHTML = `${fmtQty(sum('ok_qty'))} <small>chiếc đạt</small>`;
+      root.querySelector('#s-sub').innerHTML = `<span class="text-error">Không đạt ${fmtQty(sum('ng_qty'))}</span><span>Tổng ${fmtQty(sum('total_qty'))}</span><span class="muted">${act.length} báo cáo${rows.length > act.length ? ` · ${rows.length - act.length} đã hủy` : ''}</span>`;
       root.querySelector('#list').innerHTML = rows.length ? rows.map((r) => repCard(r, true)).join('')
         : `<div class="m-card m-empty">${icon('inbox', 'ic-xl')}<div>Không có báo cáo nào trong khoảng thời gian này.</div></div>`;
       refreshIcons();

@@ -195,8 +195,8 @@
       const m = UI.modal({
         title: 'Thêm mã hàng',
         body: `<div class="stack"><div class="alert alert-info">${icon('info')} Khi kết nối Bravo, mã hàng sẽ được đồng bộ tự động. Thêm tay chỉ dùng cho demo hoặc hàng chưa có trên ERP.</div>
-          <div class="field"><label>Mã hàng <span class="req">*</span></label><input class="input" name="code" placeholder="VD: TR-125"></div>
-          <div class="field"><label>Tên sản phẩm <span class="req">*</span></label><input class="input" name="name" placeholder="VD: Trục truyền động Ø25"></div></div>`,
+          <div class="field"><label>Mã hàng <span class="req">*</span></label><input class="input" name="code" placeholder="Ví dụ: TR-125"></div>
+          <div class="field"><label>Tên sản phẩm <span class="req">*</span></label><input class="input" name="name" placeholder="Ví dụ: Trục truyền động Ø25"></div></div>`,
         footer: `<button class="btn btn-ghost" data-close>Hủy</button><button class="btn" data-ok>${icon('check')} Lưu</button>`,
       });
       m.el.querySelector('[data-ok]').addEventListener('click', (e) => UI.busy(e.currentTarget, async () => {
@@ -212,7 +212,7 @@
     function importExcel() {
       let rows = [];
       const m = UI.modal({
-        title: 'Nhập mã hàng & công đoạn từ Excel', size: 'lg',
+        title: 'Nhập mã hàng và công đoạn từ Excel', size: 'lg',
         body: `<div class="stack sm"><p>File cần các cột: <b>Mã hàng, Tên sản phẩm, Mã công đoạn, Tên công đoạn, Thứ tự</b> (mỗi dòng là một công đoạn). Có thể dùng file xuất từ Bravo sau khi đổi tên cột.</p>
           <div class="row"><button class="btn btn-outline" data-tpl>${icon('download')} Tải file mẫu</button>
           <label class="btn">${icon('upload')} Chọn file Excel<input type="file" accept=".xlsx,.xls,.csv" hidden></label><span class="muted" id="fn"></span></div>

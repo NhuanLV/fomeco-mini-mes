@@ -1,4 +1,4 @@
-/* Dashboard: tổng hợp sản lượng, nhận/chuyển, tồn BTP theo xí nghiệp */
+/* Dashboard: tổng hợp sản lượng, nhận/chuyển, tồn bán thành phẩm theo xí nghiệp */
 (function () {
   const { esc, icon, fmtQty, fmtDateTime, fmtDate, badge, refreshIcons, options } = UI;
   let chart = null, timer = null;
@@ -31,12 +31,12 @@
       <div class="grid g6" id="kpis"></div>
       <div class="dash-charts">
         <div class="card"><div class="card-title"><h2>Sản lượng theo thời gian</h2><span class="xs muted" id="range"></span></div><div style="height:290px"><canvas id="chart"></canvas></div></div>
-        <div class="card"><div class="card-title"><h2>Tồn BTP theo xí nghiệp</h2>${badge('chiếc')}</div><div id="stockbars" class="stack" style="gap:12px"></div></div>
+        <div class="card"><div class="card-title"><h2>Tồn bán thành phẩm theo xí nghiệp</h2>${badge('chiếc')}</div><div id="stockbars" class="stack" style="gap:12px"></div></div>
       </div>
       <div class="card"><h2 style="margin-bottom:10px">Tổng hợp theo xí nghiệp</h2>
-        <div class="table-wrap"><table class="table"><thead><tr><th>Xí nghiệp</th><th class="num">OK</th><th class="num">NG</th><th class="num">Tỷ lệ NG</th>
-        <th class="num">Nhận BTP</th><th class="num">Chuyển BTP</th><th class="num">Tồn BTP</th><th class="num">Số báo cáo</th><th></th></tr></thead><tbody id="tbu"></tbody></table></div>
-        <p class="xs muted" style="margin-top:8px">Tỷ lệ NG trên 5% được đánh dấu vàng. Số liệu cập nhật ngay khi có báo cáo mới, sửa hoặc hủy (Realtime).</p></div>
+        <div class="table-wrap"><table class="table"><thead><tr><th>Xí nghiệp</th><th class="num">Đạt</th><th class="num">Không đạt</th><th class="num">Tỷ lệ không đạt</th>
+        <th class="num">Nhận bán thành phẩm</th><th class="num">Chuyển bán thành phẩm</th><th class="num">Tồn bán thành phẩm</th><th class="num">Số báo cáo</th><th></th></tr></thead><tbody id="tbu"></tbody></table></div>
+        <p class="xs muted" style="margin-top:8px">Tỷ lệ không đạt trên 5% được đánh dấu vàng. Số liệu cập nhật ngay khi có báo cáo mới, sửa hoặc hủy (cập nhật trực tiếp).</p></div>
     </div>`;
 
     const el = (n) => root.querySelector(`[name=${n}]`);
@@ -62,11 +62,11 @@
       const sum = (k) => daily.reduce((a, r) => a + Number(r[k]), 0);
       const ok = sum('ok_qty'), ng = sum('ng_qty');
       const k = [
-        ['Sản lượng OK', ok, 'chiếc', 'check', 'emerald'],
-        ['Sản lượng NG', ng, `chiếc · ${(ok + ng ? (ng / (ok + ng)) * 100 : 0).toFixed(1)}% NG`, 'x', 'red'],
-        ['Nhận BTP trong kỳ', sum('received_qty'), 'chiếc', 'arrow-down-to-line', 'blue'],
-        ['Chuyển BTP trong kỳ', sum('transferred_qty'), 'chiếc', 'arrow-up-from-line', 'blue'],
-        ['Tồn BTP cuối kỳ', stock.reduce((a, r) => a + Number(r.closing_qty), 0), 'chiếc', 'package', 'emerald'],
+        ['Sản lượng đạt', ok, 'chiếc', 'check', 'emerald'],
+        ['Sản lượng không đạt', ng, `chiếc · ${(ok + ng ? (ng / (ok + ng)) * 100 : 0).toFixed(1)}% không đạt`, 'x', 'red'],
+        ['Nhận bán thành phẩm trong kỳ', sum('received_qty'), 'chiếc', 'arrow-down-to-line', 'blue'],
+        ['Chuyển bán thành phẩm trong kỳ', sum('transferred_qty'), 'chiếc', 'arrow-up-from-line', 'blue'],
+        ['Tồn bán thành phẩm cuối kỳ', stock.reduce((a, r) => a + Number(r.closing_qty), 0), 'chiếc', 'package', 'emerald'],
         ['Có báo cáo trong kỳ', new Set(daily.map((r) => r.unit_id)).size, `xí nghiệp · ${sum('report_count')} báo cáo`, 'factory', 'amber'],
       ];
       root.querySelector('#kpis').innerHTML = k.map(([l, v, u, ic, c]) => `<div class="card kpi ${c}"><div class="k-label">${l}${icon(ic)}</div><div class="k-val">${fmtQty(v)}</div><div class="xs muted">${u}</div></div>`).join('');
@@ -82,8 +82,8 @@
         chart = new Chart(root.querySelector('#chart'), {
           type: 'bar',
           data: { labels: days.map((d) => d.slice(8) + '/' + d.slice(5, 7)), datasets: [
-            { label: 'OK', data: days.map((d) => by[d]?.ok || 0), backgroundColor: '#10b981', stack: 's', borderRadius: 4 },
-            { label: 'NG', data: days.map((d) => by[d]?.ng || 0), backgroundColor: '#f87171', stack: 's', borderRadius: 4 }] },
+            { label: 'Đạt', data: days.map((d) => by[d]?.ok || 0), backgroundColor: '#10b981', stack: 's', borderRadius: 4 },
+            { label: 'Không đạt', data: days.map((d) => by[d]?.ng || 0), backgroundColor: '#f87171', stack: 's', borderRadius: 4 }] },
           options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', align: 'end' } },
             scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } } },
         });
@@ -101,7 +101,7 @@
       root.querySelector('#stockbars').innerHTML = withStock.length ? withStock.map((r) => `<div class="sm">
           <div class="row between"><span>${esc(r.name)}</span><b class="${r.st < 0 ? 'text-error' : ''}">${fmtQty(r.st)}</b></div>
           <div class="bar"><span class="${r.st < 0 ? 'neg' : ''}" style="width:${(Math.abs(r.st) / max) * 100}%"></span></div></div>`).join('')
-        : '<p class="muted center" style="padding:24px">Không có dữ liệu tồn BTP phù hợp với điều kiện đã chọn.</p>';
+        : '<p class="muted center" style="padding:24px">Không có dữ liệu tồn bán thành phẩm phù hợp với điều kiện đã chọn.</p>';
       root.querySelector('#tbu').innerHTML = list.map((r) => `<tr><td class="bold">${esc(r.name)}</td>
         <td class="num text-success">${fmtQty(r.ok)}</td><td class="num text-error">${fmtQty(r.ng)}</td>
         <td class="num">${r.ok + r.ng ? badge(((r.ng / (r.ok + r.ng)) * 100).toFixed(1) + '%', r.ng / (r.ok + r.ng) > 0.05 ? 'warning' : 'neutral') : '<span class="muted">—</span>'}</td>

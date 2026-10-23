@@ -39,7 +39,7 @@
         </div>
         <div class="table-wrap"><table class="table"><thead><tr><th>Tên người dùng</th><th>Tài khoản</th><th>Đơn vị phân công</th><th>Vai trò</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="tb"></tbody></table></div>
         <p class="sm muted" style="margin-top:10px" id="info"></p>
-        ${sys ? '' : `<p class="xs muted">${icon('info')} Bạn được tạo và sửa tài khoản có vai trò không vượt quá quyền của mình. Đặt lại mật khẩu và xóa tài khoản do quản trị hệ thống thực hiện.</p>`}</div></div>`;
+        ${sys ? '' : `<p class="xs muted">${icon('info')} Vai trò hiện tại chỉ được tạo và sửa tài khoản có vai trò không vượt quá quyền của mình. Đặt lại mật khẩu và xóa tài khoản do quản trị hệ thống thực hiện.</p>`}</div></div>`;
     const draw = () => {
       const rows = list.filter((a) => (!unit || a.unit_id === unit) && (!search || normalize(a.full_name + ' ' + a.username).includes(normalize(search))));
       root.querySelector('#tb').innerHTML = rows.map((a) => `<tr class="${a.active ? '' : 'dim'}">
@@ -64,9 +64,9 @@
       const m = UI.modal({
         title: isEdit ? 'Sửa thông tin tài khoản' : 'Tạo tài khoản mới',
         body: `<div class="stack">
-          <div class="field"><label>Họ và tên <span class="req">*</span></label><input class="input" name="name" value="${esc(a?.full_name || '')}" placeholder="VD: Nguyễn Văn An"></div>
+          <div class="field"><label>Họ và tên <span class="req">*</span></label><input class="input" name="name" value="${esc(a?.full_name || '')}" placeholder="Ví dụ: Nguyễn Văn An"></div>
           <div class="grid g2">
-            <div class="field"><label>Tên đăng nhập ${isEdit ? '' : '<span class="req">*</span>'}</label><input class="input" name="user" value="${esc(a?.username || '')}" ${isEdit ? 'disabled' : ''} placeholder="VD: nv.ck1" autocomplete="off"></div>
+            <div class="field"><label>Tên đăng nhập ${isEdit ? '' : '<span class="req">*</span>'}</label><input class="input" name="user" value="${esc(a?.username || '')}" ${isEdit ? 'disabled' : ''} placeholder="Ví dụ: nv.ck1" autocomplete="off"></div>
             ${isEdit ? '' : '<div class="field"><label>Mật khẩu <span class="req">*</span></label><input class="input" type="password" name="pw" autocomplete="new-password"><span class="help">Ít nhất 6 ký tự</span></div>'}
           </div>
           <div class="field"><label>Đơn vị phân công <span class="req">*</span></label><select class="select" name="unit"><option value="">Chọn đơn vị</option>
@@ -107,7 +107,7 @@
       pw: (t) => passwordDialog(find(t), false),
       del: async (t) => {
         const a = find(t);
-        if (!(await UI.confirmDialog({ title: 'Xác nhận xóa tài khoản', message: `Bạn có chắc chắn muốn xóa tài khoản "${a.full_name}"?\nTài khoản đã có báo cáo chỉ có thể khóa, không xóa được.`, okLabel: 'Xóa', danger: true }))) return;
+        if (!(await UI.confirmDialog({ title: 'Xác nhận xóa tài khoản', message: `Xóa tài khoản "${a.full_name}"?\nTài khoản đã có báo cáo chỉ có thể khóa, không xóa được.`, okLabel: 'Xóa', danger: true }))) return;
         try { await API.deleteAccount(a.id); UI.ok('Tài khoản đã được xóa'); load(); } catch (e) { UI.err(e.message); }
       },
     });
@@ -141,13 +141,13 @@
         body: `<div class="stack">
           ${view ? `<div class="alert alert-warning"><b>Đây là vai trò hệ thống, không thể chỉnh sửa hoặc xóa.</b></div>` : ''}
           <div class="grid g2">
-            <div class="field"><label>Tên vai trò ${view ? '' : '<span class="req">*</span>'}</label><input class="input" name="name" value="${esc(r?.name || '')}" ${view ? 'disabled' : ''} placeholder="VD: Tổ trưởng"></div>
+            <div class="field"><label>Tên vai trò ${view ? '' : '<span class="req">*</span>'}</label><input class="input" name="name" value="${esc(r?.name || '')}" ${view ? 'disabled' : ''} placeholder="Ví dụ: Tổ trưởng"></div>
             <div class="field"><label>Mô tả</label><textarea class="textarea" name="desc" rows="2" ${view ? 'disabled' : ''}>${esc(r?.description || '')}</textarea></div>
           </div>
           <div class="row between"><b>Quyền hạn</b><label class="check"><input type="checkbox" data-all ${view ? 'disabled' : ''}> Chọn tất cả</label></div>
           ${groups.map((g) => `<div><div class="bold sm" style="margin:6px 0">${esc(g)}</div><div class="grid g2" style="gap:8px">
             ${perms.filter((p) => p.group_name === g).map((p) => `<label class="check check-card"><input type="checkbox" name="perm" value="${p.code}" ${r?.permissions.includes(p.code) ? 'checked' : ''} ${view ? 'disabled' : ''}>
-              <span><div>${esc(p.name)}</div><div class="xs muted mono">${p.code}</div></span></label>`).join('')}</div></div>`).join('')}
+              <span><div>${esc(p.name)}</div></span></label>`).join('')}</div></div>`).join('')}
         </div>`,
         footer: view ? '<button class="btn btn-outline" data-close>Đóng</button>' : `<button class="btn btn-ghost" data-close>Hủy</button><button class="btn" data-ok>${icon('check')} Lưu</button>`,
       });
@@ -168,7 +168,7 @@
       edit: (t) => form(list.find((r) => r.id === t.dataset.id)),
       del: async (t) => {
         const r = list.find((x) => x.id === t.dataset.id);
-        if (!(await UI.confirmDialog({ title: 'Xác nhận xóa', message: `Bạn có chắc chắn muốn xóa vai trò "${r.name}"?`, okLabel: 'Xóa', danger: true }))) return;
+        if (!(await UI.confirmDialog({ title: 'Xác nhận xóa', message: `Xóa vai trò "${r.name}"?`, okLabel: 'Xóa', danger: true }))) return;
         try { await API.deleteRole(r.id); UI.ok('Xóa vai trò thành công'); load(); } catch (e) { UI.err(e.message); }
       },
     });
@@ -201,8 +201,8 @@
       const m = UI.modal({
         title: u ? 'Sửa đơn vị' : 'Thêm đơn vị',
         body: `<div class="stack">
-          <div class="field"><label>Tên đơn vị <span class="req">*</span></label><input class="input" name="name" value="${esc(u?.name || '')}" placeholder="VD: Xí nghiệp Cơ khí 4"></div>
-          <div class="grid g2"><div class="field"><label>Mã đơn vị <span class="req">*</span></label><input class="input" name="code" value="${esc(u?.code || '')}" placeholder="VD: CK4"></div>
+          <div class="field"><label>Tên đơn vị <span class="req">*</span></label><input class="input" name="name" value="${esc(u?.name || '')}" placeholder="Ví dụ: Xí nghiệp Cơ khí 4"></div>
+          <div class="grid g2"><div class="field"><label>Mã đơn vị <span class="req">*</span></label><input class="input" name="code" value="${esc(u?.code || '')}" placeholder="Ví dụ: CK4"></div>
             <div class="field"><label>Cấp đơn vị</label><select class="select" name="level">${options([{ value: 1, label: 'Cấp 1 — Công ty' }, { value: 2, label: 'Cấp 2 — Xí nghiệp/Kho' }], u?.level || 2)}</select></div></div>
           <div class="field" id="pf"><label>Thuộc công ty</label><select class="select" name="parent">${options(companies.map((c) => ({ value: c.id, label: c.name })), u?.parent_id || companies[0]?.id)}</select></div>
           <label class="check"><input type="checkbox" name="active" ${u ? (u.active ? 'checked' : '') : 'checked'}> Đang hoạt động</label></div>`,
