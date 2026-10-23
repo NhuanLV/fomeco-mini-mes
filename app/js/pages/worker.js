@@ -46,7 +46,7 @@
     let rows = [];
     root.innerHTML = `
       <div class="m-top">
-        <div class="brand-sm"><img src="assets/logo.png?v=2" alt="FOMECO"><div>Mini-MES<small>Báo cáo sản xuất</small></div></div>
+        <div class="brand-sm"><img src="assets/logo.png?v=2" alt="FOMECO"><div>FOMECO<small>Báo cáo sản xuất</small></div></div>
         <div class="row" style="gap:10px"><span class="live-tag" data-live></span>
           <a class="m-round" href="#/w/me" title="Tài khoản">${icon('settings')}</a></div>
       </div>
