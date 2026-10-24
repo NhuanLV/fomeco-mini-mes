@@ -1,4 +1,4 @@
--- ==================================================================
+-- =====================================================================
 -- 06: DỮ LIỆU THẬT – 5 MÃ HÀNG TIÊU BIỂU (nguồn: danh mục Bravo "kiểu trình bay2.csv", 23/10/2026)
 --   1.2.01.0106 FRAME HA (15 công đoạn)            → Xí nghiệp Cơ khí 1 (nv.ck1)
 --   1.4.03.0283 RACE, STEERING INNER LOWER (12)    → Xí nghiệp Vòng bi (nv.vongbi)
