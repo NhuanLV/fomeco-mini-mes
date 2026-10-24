@@ -247,7 +247,8 @@ table.table { width: 100%; border-collapse: collapse; }
 .qr-card .qr svg { width: 150px; height: 150px; }
 .qr-brand { font-weight: 700; color: #0f5fa8; } .qr-brand span { color: var(--primary); font-size: 12px; }
 .scan-box { position: relative; background: #000; border-radius: 10px; overflow: hidden; aspect-ratio: 4 / 3; color: #fff; }
-.scan-box #qr-reader { width: 100%; height: 100%; }
+.scan-box #qr-reader { position: relative; width: 100%; height: 100%; }
+.scan-frame { position: absolute; left: 50%; top: 50%; width: 60%; aspect-ratio: 1; transform: translate(-50%, -50%); border: 2px solid rgba(255,255,255,.9); border-radius: 14px; box-shadow: 0 0 0 9999px rgba(0,0,0,.28); pointer-events: none; }
 .scan-box #qr-reader video { width: 100% !important; height: 100% !important; object-fit: cover; }
 .scan-msg { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; gap: 8px; }
 .pager { display: flex; gap: 4px; align-items: center; }
