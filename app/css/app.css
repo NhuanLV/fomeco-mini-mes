@@ -360,3 +360,8 @@ table.table { width: 100%; border-collapse: collapse; }
 .pbi-wrap:fullscreen { width: 100vw; height: 100vh; border: 0; border-radius: 0; }
 .pbi-wrap:-webkit-full-screen { width: 100vw; height: 100vh; border: 0; border-radius: 0; }
 @media (max-width: 760px) { .main.main-wide { padding: 8px; } }
+.pbi-close { display: none; position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 2; background: rgba(255,255,255,.92); border: 1px solid var(--border); }
+.pbi-wrap:fullscreen .pbi-close, .pbi-wrap.pbi-max .pbi-close { display: inline-flex; }
+.pbi-wrap:-webkit-full-screen .pbi-close { display: inline-flex; }
+.pbi-wrap.pbi-max { position: fixed; inset: 0; z-index: 1000; width: 100vw; height: 100vh; height: 100dvh; min-height: 0; border: 0; border-radius: 0; }
+body.pbi-lock { overflow: hidden; }
