@@ -82,6 +82,7 @@
         <a class="brand" href="#${homePath()}"><img src="assets/logo.png?v=2" alt="FOMECO"><span>FOMECO</span></a>
         <nav class="nav" id="main-nav">
           ${Auth.has('VIEW_REPORT') ? `<div class="nav-item"><a class="nav-btn ${path === '/' ? 'active' : ''}" href="#/">${icon('house')} Dashboard</a></div>` : ''}
+          ${Auth.has('VIEW_REPORT') ? `<div class="nav-item"><a class="nav-btn ${path === '/inventory' ? 'active' : ''}" href="#/inventory">${icon('warehouse')} Báo cáo tồn kho</a></div>` : ''}
           ${group('Quản trị', 'settings-2', admin)}
           ${group('Báo cáo sản xuất', 'factory', report)}
         </nav>

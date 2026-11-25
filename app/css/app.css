@@ -350,3 +350,8 @@ table.table { width: 100%; border-collapse: collapse; }
   .modal-backdrop .modal { border-radius: 20px 20px 0 0; max-height: 92vh; }
   .modal-foot .btn { flex: 1; height: 48px; }
 }
+
+/* Báo cáo tồn kho (Power BI nhúng) — giữ tỉ lệ gốc 1024 × 1060, co giãn theo bề ngang */
+.pbi-card { padding: 0; overflow: hidden; }
+.pbi-wrap { position: relative; width: 100%; aspect-ratio: 1024 / 1060; max-height: calc(100vh - 150px); min-height: 480px; background: #fff; }
+.pbi-wrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
